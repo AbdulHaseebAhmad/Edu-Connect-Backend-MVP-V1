@@ -1,0 +1,5 @@
+package SchoolAdminHandler
+
+func test() {
+
+}

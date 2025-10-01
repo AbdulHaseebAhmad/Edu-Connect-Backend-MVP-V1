@@ -14,7 +14,7 @@ type HttpServer struct {
 type Configuration struct {
 	Env         string `yaml:"env" env:"ENV" env-required:"true"`
 	StoragePath string `yaml:"storage_path" env:"storage_path" env-required:"true"`
-	HttpServer
+	HttpServer  `yaml:"http_server" env-required:"true"`
 }
 
 func LoadConfiguration() *Configuration {
@@ -23,10 +23,10 @@ func LoadConfiguration() *Configuration {
 	configPath = os.Getenv("CONFIG_PATH") //using os package we call the Getenv method to look for environment variables in environment
 
 	if configPath == "" {
-		flags := flag.String("config_path", "Config/local.yaml", "The path to the yaml file holding details")
+		flags := flag.String("config_path", "Config/localConfig.yaml", "The path to the yaml file holding details")
 		flag.Parse()
 		configPath = *flags
-		slog.Info("The path to the yaml holding environment variable:", configPath)
+		slog.Info("The path to the yaml holding environment variable:", "path", configPath)
 		if configPath == "" {
 			slog.Info("Add flags while running the command")
 		}
@@ -35,14 +35,14 @@ func LoadConfiguration() *Configuration {
 	_, error := os.Stat(configPath) //check if yaml file exist at the passed path from cli
 
 	if os.IsNotExist(error) {
-		slog.Info("Config file does not exist: ", configPath)
+		slog.Info("config file does not exist: ", "path", configPath)
 	}
 
 	var Configuration Configuration
 	err := cleanenv.ReadConfig(configPath, &Configuration)
 
 	if err != nil {
-		slog.Info("Can not read config file: ", err.Error())
+		slog.Info("can not read config file: ", "error", err.Error())
 	}
 
 	return &Configuration
