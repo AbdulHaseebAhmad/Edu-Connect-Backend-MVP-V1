@@ -13,6 +13,7 @@ import (
 
 	Configurator "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Config"
 	SysAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SystemAdministration"
+	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 )
 
@@ -43,6 +44,14 @@ func main() {
 	router.HandleFunc("POST /api/sysadmin/login", SysAdminHandler.Login(db))
 	router.HandleFunc("POST /api/sysadmin/signup", SysAdminHandler.Signup(db))
 	// ->> Sys Admin Auth Routes End
+
+	// ->> Protected Routes Start <--
+
+	router.Handle("POST /api/sysadmin/testing", Middlewares.Authorizer(db, func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte("Welcome To the Protected Route"))
+	}))
+	// ->> Protected Routes End <--
+
 	//---->   Routes End   <-----
 	//setup server
 	server := http.Server{

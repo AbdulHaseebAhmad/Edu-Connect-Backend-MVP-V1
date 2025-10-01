@@ -43,7 +43,7 @@ func Login(storage Storage.Storage) http.HandlerFunc {
 		})
 
 		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf",
+			Name:     "csrf_token",
 			Value:    csrftoken,
 			Expires:  time.Now().Add(24 * time.Hour),
 			HttpOnly: false,

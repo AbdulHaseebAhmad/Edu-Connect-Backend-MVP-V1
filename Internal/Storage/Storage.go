@@ -9,4 +9,5 @@ import (
 type Storage interface {
 	SysAdminLogin(ctx context.Context, admin Types.SysAdminLogin) (sessionToken string, csrfToken string, err error)
 	SysAdminSignup(ctx context.Context, admin Types.SysAdminSignup) (err error)
+	AuthorizeSysAdmin(ctx context.Context, sessionToken string, csrfToken string) (isAuthorize bool)
 }

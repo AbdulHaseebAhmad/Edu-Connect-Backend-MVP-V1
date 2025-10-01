@@ -84,3 +84,15 @@ func (p *Postgress) SysAdminSignup(ctx context.Context, admin Types.SysAdminSign
 	}
 	return nil
 }
+
+func (p *Postgress) AuthorizeSysAdmin(ctx context.Context, sessionToken string, csrfToken string) bool {
+	var csrf string
+	qerr := p.DB.QueryRowContext(ctx, "SELECT csrf_token FROM sessions WHERE session_token = $1", sessionToken).Scan(&csrf)
+	if qerr != nil {
+		if errors.Is(qerr, sql.ErrNoRows) {
+			return false
+		}
+		return false
+	}
+	return csrf == csrfToken
+}
