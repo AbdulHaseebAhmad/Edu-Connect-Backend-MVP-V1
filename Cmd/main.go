@@ -15,6 +15,7 @@ import (
 	SysAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SystemAdministration"
 	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -47,16 +48,27 @@ func main() {
 
 	// ->> Protected Routes Start <--
 
-	router.Handle("POST /api/sysadmin/testing", Middlewares.Authorizer(db, func(w http.ResponseWriter, r *http.Request) {
+	router.Handle("GET /api/sysadmin/testing", Middlewares.Authorizer(db, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Welcome To the Protected Route"))
 	}))
 	// ->> Protected Routes End <--
 
 	//---->   Routes End   <-----
+
+	// configure CORS options
+	c := cors.New(cors.Options{
+		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:3000"},
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type"},
+		AllowCredentials: true,
+	})
+
+	// wrap the router with CORS handler
+	handler := c.Handler(router)
 	//setup server
 	server := http.Server{
 		Addr:    cfg.HttpServer.Address,
-		Handler: router,
+		Handler: handler,
 	}
 	fmt.Println("Server starting at:", cfg.HttpServer.Address)
 

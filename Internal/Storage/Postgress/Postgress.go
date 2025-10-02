@@ -31,45 +31,47 @@ func InitiateDbConnection(cfg *Configurator.Configuration) (*Postgress, error) {
 	return &Postgress{DB: db}, nil
 }
 
-func (p *Postgress) SysAdminLogin(ctx context.Context, admin Types.SysAdminLogin) (sessionToken string, csrfToken string, err error) {
+func (p *Postgress) SysAdminLogin(ctx context.Context, admin Types.SysAdminLogin) (sessionToken string, csrfToken string, sysadminauth *Types.SysAdminAuthenticated, err error) {
 	var hashedPassword string
-	var role string
-	var email string
 
-	queryerr := p.DB.QueryRowContext(ctx, "SELECT hashed_password,role,email from credentials WHERE email = $1", admin.Email).Scan(&hashedPassword, &role, &email)
+	SysAdminAut := Types.SysAdminAuthenticated{
+		Authenticated: true,
+		Status:        true,
+	}
+	queryerr := p.DB.QueryRowContext(ctx, "SELECT hashed_password,role,email,name from credentials WHERE email = $1", admin.Email).Scan(&hashedPassword, &SysAdminAut.Role, &SysAdminAut.Email, &SysAdminAut.Name)
 	if queryerr != nil {
 		slog.Info("There was an error in querying hashed password from db", "error", queryerr)
-		return "", "", queryerr
+		return "", "", &Types.SysAdminAuthenticated{}, queryerr
 	}
 
 	passwordmatch, matcherr := HashPassword.Unhashpassword(admin.Password, hashedPassword)
 
 	if matcherr != nil {
 		slog.Info("There was an internal error", "error", "Hashin algorithim error")
-		return "", "", errors.New("authentication Error")
+		return "", "", &Types.SysAdminAuthenticated{}, errors.New("authentication Error")
 	}
 	if !passwordmatch {
 		slog.Info("There was an auth error", "error", "Password/Email is wrong")
-		return "", "", errors.New("authentication Error")
+		return "", "", &Types.SysAdminAuthenticated{}, errors.New("authentication Error")
 	}
 	session_token, stokenerr := Tokens.GenerateToken(10)
 	if stokenerr != nil {
 		slog.Info("There was a session token generation error", "error", stokenerr)
-		return "", "", stokenerr
+		return "", "", &Types.SysAdminAuthenticated{}, stokenerr
 	}
 	csrf_token, csrftokenerr := Tokens.GenerateToken(10)
 	if csrftokenerr != nil {
 		slog.Info("There was a csrf token generation error", "error", stokenerr)
-		return "", "", csrftokenerr
+		return "", "", &Types.SysAdminAuthenticated{}, csrftokenerr
 	}
 
-	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, role)  VALUES ($1, $2, $3, $4)", session_token, csrf_token, email, role)
+	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, role)  VALUES ($1, $2, $3, $4)", session_token, csrf_token, SysAdminAut.Email, SysAdminAut.Role)
 	if insertqerr != nil {
 		slog.Info("There was an error inserting data to db", "error", insertqerr)
-		return "", "", nil
+		return "", "", &Types.SysAdminAuthenticated{}, nil
 	}
 
-	return session_token, csrf_token, nil
+	return session_token, csrf_token, &SysAdminAut, nil
 }
 
 func (p *Postgress) SysAdminSignup(ctx context.Context, admin Types.SysAdminSignup) (err error) {

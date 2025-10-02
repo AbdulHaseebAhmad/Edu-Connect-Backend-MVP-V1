@@ -28,7 +28,7 @@ func Login(storage Storage.Storage) http.HandlerFunc {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
 		}
-		sessiontoken, csrftoken, loginerr := storage.SysAdminLogin(r.Context(), SysAdmin)
+		sessiontoken, csrftoken, sysAdminAuth, loginerr := storage.SysAdminLogin(r.Context(), SysAdmin)
 		if loginerr != nil {
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(loginerr))
 			return
@@ -49,7 +49,7 @@ func Login(storage Storage.Storage) http.HandlerFunc {
 			HttpOnly: false,
 		})
 
-		response.WriteJson(w, http.StatusAccepted, response.GeneralSuccess("User Logged In succesfully"))
+		response.WriteJson(w, http.StatusAccepted, sysAdminAuth)
 
 	}
 }
