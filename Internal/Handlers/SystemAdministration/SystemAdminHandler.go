@@ -2,10 +2,13 @@ package SysAdminHandler
 
 import (
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"time"
 
+	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
 	response "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Responses"
@@ -130,5 +133,48 @@ func CreateInvite(storage Storage.SysAdmin) http.HandlerFunc {
 
 		//return response
 		response.WriteJson(w, http.StatusCreated, generatedData)
+	}
+}
+
+func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var link string
+		token := r.PathValue("token")
+		berr := json.NewDecoder(r.Body).Decode(&link)
+
+		if berr != nil {
+			slog.Info("Body error", "message", "Body could not be converted to  json")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("body could not be converted to  json")))
+			return
+		}
+
+		// fmt.Println(token, link)
+		if token == "" {
+			slog.Info("Token error", "message", "token is missing")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the token is missing")))
+			return
+		}
+
+		if link == "" {
+			slog.Info("Link error", "message", "Link is missing")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the Link is missing")))
+			return
+		}
+
+		email, qerr := sysadminStore.GetInviteData(r.Context(), token)
+		if qerr != nil {
+			slog.Info("Token error", "error", qerr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(qerr))
+		}
+
+		message := fmt.Sprintf("Peace and Blessings be upon you. Here is your link to access greatness %s", link)
+		smtperr := smtp.Send(email, "Invitation", message)
+
+		if smtperr != nil {
+			slog.Info("SMTP error", "message", smtperr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the Link is missing")))
+			return
+		}
+		response.WriteJson(w, http.StatusCreated, response.GeneralSuccess("the link has been sent succcesfully"))
 	}
 }

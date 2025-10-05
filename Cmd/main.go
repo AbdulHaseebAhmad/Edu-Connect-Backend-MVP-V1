@@ -12,6 +12,7 @@ import (
 	"time"
 
 	Configurator "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Config"
+	Smtp "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email/SMTP"
 	SchoolAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SchoolAdministration"
 	SysAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SystemAdministration"
 	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
@@ -27,6 +28,7 @@ func main() {
 	cfg := Configurator.LoadConfiguration()
 	fmt.Println(*cfg)
 
+	smtp := Smtp.NewSMTPSender(cfg)
 	//setup database
 
 	db, dberror := Postgress.InitiateDbConnection(cfg)
@@ -58,13 +60,18 @@ func main() {
 
 	//---> School Admin Routes Start <---
 	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
+	router.HandleFunc("POST /api/schooladmin/invite/{token}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore))
 	//----> School Admin Routes Ennd <----
+
 	// ->> Protected Routes Start <--
 
 	router.Handle("GET /api/sysadmin/testing", Middlewares.Authorizer(sysAdminStore, func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Welcome To the Protected Route"))
 	}))
+
+	// --> Sys Admin  Protected Routes
 	router.Handle("POST /api/sysadmin/invite/create", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.CreateInvite(sysAdminStore)))
+	router.Handle("POST /api/sysadmin/invite/send/{token}", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.SendInvite(sysAdminStore, smtp)))
 	// ->> Protected Routes End <--
 
 	//---->   Routes End   <-----

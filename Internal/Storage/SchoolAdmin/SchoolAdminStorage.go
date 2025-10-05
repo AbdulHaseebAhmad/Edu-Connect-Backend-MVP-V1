@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
+	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
 )
 
 type SchoolAdminStore struct {
@@ -30,11 +31,11 @@ func (p *SchoolAdminStore) ValidateLink(ctx context.Context, inviteToken string)
 		return "", qerr
 	}
 
-	parsedTime, err := time.Parse(time.RFC3339Nano, returneTimeStamp)
+	parsedTime, terr := time.Parse(time.RFC3339Nano, returneTimeStamp)
 
-	if err != nil {
-		slog.Info("There was an error queryying", "error", err)
-		return "", err
+	if terr != nil {
+		slog.Info("There was an error parsing time", "error", terr)
+		return "", terr
 	}
 
 	expired := time.Now().Before(parsedTime)
@@ -43,4 +44,14 @@ func (p *SchoolAdminStore) ValidateLink(ctx context.Context, inviteToken string)
 		return "", errors.New("token is expired")
 	}
 	return status, nil
+}
+
+func (p *SchoolAdminStore) SubmitInvite(ctx context.Context, schoolInfo Types.SchoolInformation, token string) (string, error) {
+	var status string
+	qerr := p.DB.QueryRowContext(ctx, "UPDATE school_invites SET status = $1, admin_name = $2, school_phone = $3, school_country = $4, school_id = $5, school_curriculum = $6, school_branch = $7, school_city = $8 WHERE token = $9 RETURNING status", "completed", schoolInfo.Admin, schoolInfo.Phone, schoolInfo.Country, schoolInfo.Id, schoolInfo.Curriculam, schoolInfo.Branch, schoolInfo.City, token).Scan(&status)
+	if qerr != nil {
+		slog.Info("Query Error", "message", "there was an error saving school info to db", "error", qerr)
+		return "", nil
+	}
+	return "completed", nil
 }

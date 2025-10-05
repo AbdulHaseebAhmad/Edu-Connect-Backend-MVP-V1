@@ -11,10 +11,19 @@ import (
 type HttpServer struct {
 	Address string `yaml:"Address" env:"Address" env-required:"true"`
 }
+
+type SMTP struct {
+	Host     string `yaml:"Host" env:"Host" env-required:"true"`
+	Port     string `yaml:"Port" env:"Port" env-required:"true"`
+	Sender   string `yaml:"Sender" env:"Sender" env-required:"true"`
+	Password string `yaml:"Password" env:"Password" env-required:"true"`
+}
+
 type Configuration struct {
 	Env         string `yaml:"env" env:"ENV" env-required:"true"`
 	StoragePath string `yaml:"storage_path" env:"storage_path" env-required:"true"`
 	HttpServer  `yaml:"http_server" env-required:"true"`
+	SMTP        `yaml:"smtp" env-required:"true"`
 }
 
 func LoadConfiguration() *Configuration {

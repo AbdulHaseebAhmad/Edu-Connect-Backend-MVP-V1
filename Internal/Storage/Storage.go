@@ -11,8 +11,10 @@ type SysAdmin interface {
 	SysAdminSignup(ctx context.Context, admin Types.SysAdminSignup) (err error)
 	AuthorizeSysAdmin(ctx context.Context, sessionToken string, csrfToken string) (string, bool)
 	GenerateInvite(ctx context.Context, adminid Types.SysAdminId, inviteData Types.SchoolInvite) (*Types.LinkGenerated, error)
+	GetInviteData(ctx context.Context, token string) (string, error)
 }
 
 type SchoolAdmin interface {
 	ValidateLink(ctx context.Context, inviteToken string) (string, error)
+	SubmitInvite(ctx context.Context, schoolInfo Types.SchoolInformation, token string) (string, error)
 }

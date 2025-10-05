@@ -111,7 +111,7 @@ func (p *SysAdminStore) GenerateInvite(ctx context.Context, adminid Types.SysAdm
 		slog.Info("There was a session token generation error", "error", terr)
 		return &generatedData, terr
 	}
-	_, qerr := p.DB.ExecContext(ctx, "INSERT INTO school_invites (token,admin,name,email,status) VALUES($1,$2,$3,$4,$5)", token, adminid, inviteData.Name, inviteData.Email, "pending")
+	_, qerr := p.DB.ExecContext(ctx, "INSERT INTO school_invites (token,sys_admin,school_name,school_email,status) VALUES($1,$2,$3,$4,$5)", token, adminid, inviteData.Name, inviteData.Email, "pending")
 
 	if qerr != nil {
 		slog.Info("There was a session token generation error", "error", qerr)
@@ -124,4 +124,14 @@ func (p *SysAdminStore) GenerateInvite(ctx context.Context, adminid Types.SysAdm
 	generatedData.Token = token
 	generatedData.SchoolInvite = inviteData
 	return &generatedData, nil
+}
+
+func (p *SysAdminStore) GetInviteData(ctx context.Context, token string) (string, error) {
+	var email string
+	qerr := p.DB.QueryRowContext(ctx, "SELECT school_email from school_invites WHERE token = $1", token).Scan(&email)
+	if qerr != nil {
+		slog.Info("Query Error", "message", "there as an error querying invite token", "error", qerr)
+		return "", qerr
+	}
+	return email, nil
 }
