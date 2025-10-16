@@ -6,11 +6,13 @@ import (
 	"errors"
 	"fmt"
 	"log/slog"
+	"time"
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	_ "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
 	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
+	timecheck "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Time"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
 )
 
@@ -134,4 +136,50 @@ func (p *SysAdminStore) GetInviteData(ctx context.Context, token string) (string
 		return "", qerr
 	}
 	return email, nil
+}
+
+func (p *SysAdminStore) GetInvitesAnalytics(ctx context.Context) (Types.InvitesAnalytics, error) {
+	var analytics Types.InvitesAnalytics
+	pending := "pending"
+	completed := "completed"
+	approved := "approved"
+	err := p.DB.QueryRowContext(ctx, "SELECT COUNT(*) FILTER (WHERE created_at >= NOW() - INTERVAL '1 month' ),COUNT(*) FILTER (WHERE status = $1 AND created_at >= NOW() - INTERVAL '1 month'), COUNT(*) FILTER (WHERE status = $2 AND created_at >= NOW() - INTERVAL '1 month'), COUNT(*) FILTER (WHERE status = $3 AND created_at >= NOW() - INTERVAL '1 month') FROM school_invites", pending, completed, approved).Scan(&analytics.Total, &analytics.Pending, &analytics.Completed, &analytics.Approved)
+
+	analytics.ApprovalRate = (float64(analytics.Approved) / float64(analytics.Total) * 100)
+	analytics.AcceptanceRate = (float64(analytics.Completed) / float64(analytics.Total) * 100)
+
+	if err != nil {
+		slog.Info("db Error", "message", "Error in fetching analytics for invite dashboard", "error", err)
+		return Types.InvitesAnalytics{}, err
+	}
+
+	return analytics, nil
+}
+
+func (p *SysAdminStore) GetInvites(ctx context.Context, limit int, offlimit int) ([]Types.SchoolInformation, error) {
+	status := "completed"
+	var created_at time.Time
+
+	arrayOfRows := []Types.SchoolInformation{}
+	rows, qerr := p.DB.QueryContext(ctx, `SELECT school_name, school_email, admin_name, school_phone, school_country, school_id, school_curriculum, school_branch, school_city, created_at FROM school_invites WHERE created_at >= NOW() - INTERVAL '1 month' AND status = $1 ORDER BY created_at ASC LIMIT $2 OFFSET  $3`, status, limit, offlimit)
+	if qerr != nil {
+		slog.Info("db Error", "message", "Error in fetching analytics for invite dashboard", "error", qerr)
+		return []Types.SchoolInformation{}, qerr
+	}
+
+	defer rows.Close()
+
+	for rows.Next() {
+		var eachApplication Types.SchoolInformation
+		err := rows.Scan(&eachApplication.School, &eachApplication.Email, &eachApplication.Admin, &eachApplication.Phone, &eachApplication.Country, &eachApplication.Id, &eachApplication.Curriculam, &eachApplication.Branch, &eachApplication.City, &created_at)
+		if err != nil {
+			slog.Info("error in populating type", "message", "row could not be converted into struct", "error", err)
+			return []Types.SchoolInformation{}, err
+		}
+		priority := timecheck.CheckAppPriority(created_at)
+		eachApplication.Priority = priority
+		arrayOfRows = append(arrayOfRows, eachApplication)
+	}
+
+	return arrayOfRows, nil
 }

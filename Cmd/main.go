@@ -65,13 +65,15 @@ func main() {
 
 	// ->> Protected Routes Start <--
 
-	router.Handle("GET /api/sysadmin/testing", Middlewares.Authorizer(sysAdminStore, func(w http.ResponseWriter, r *http.Request) {
-		w.Write([]byte("Welcome To the Protected Route"))
-	}))
+	// router.Handle("GET /api/sysadmin/testing", Middlewares.Authorizer(sysAdminStore, func(w http.ResponseWriter, r *http.Request) {
+	// 	w.Write([]byte("Welcome To the Protected Route"))
+	// }))
 
 	// --> Sys Admin  Protected Routes
 	router.Handle("POST /api/sysadmin/invite/create", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.CreateInvite(sysAdminStore)))
 	router.Handle("POST /api/sysadmin/invite/send/{token}", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.SendInvite(sysAdminStore, smtp)))
+	router.Handle("GET /api/sysadmin/invite/analytics", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesAnalytics(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/invite/applications", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesApplications(sysAdminStore)))
 	// ->> Protected Routes End <--
 
 	//---->   Routes End   <-----

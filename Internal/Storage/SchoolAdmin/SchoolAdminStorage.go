@@ -48,10 +48,11 @@ func (p *SchoolAdminStore) ValidateLink(ctx context.Context, inviteToken string)
 
 func (p *SchoolAdminStore) SubmitInvite(ctx context.Context, schoolInfo Types.SchoolInformation, token string) (string, error) {
 	var status string
-	qerr := p.DB.QueryRowContext(ctx, "UPDATE school_invites SET status = $1, admin_name = $2, school_phone = $3, school_country = $4, school_id = $5, school_curriculum = $6, school_branch = $7, school_city = $8 WHERE token = $9 RETURNING status", "completed", schoolInfo.Admin, schoolInfo.Phone, schoolInfo.Country, schoolInfo.Id, schoolInfo.Curriculam, schoolInfo.Branch, schoolInfo.City, token).Scan(&status)
+	currentTime := time.Now()
+	qerr := p.DB.QueryRowContext(ctx, "UPDATE school_invites SET status = $1, admin_name = $2, school_phone = $3, school_country = $4, school_id = $5, school_curriculum = $6, school_branch = $7, school_city = $8, completed_date = $9 WHERE token = $10 RETURNING status", "completed", schoolInfo.Admin, schoolInfo.Phone, schoolInfo.Country, schoolInfo.Id, schoolInfo.Curriculam, schoolInfo.Branch, schoolInfo.City, currentTime, token).Scan(&status)
 	if qerr != nil {
 		slog.Info("Query Error", "message", "there was an error saving school info to db", "error", qerr)
-		return "", nil
+		return "", qerr
 	}
 	return "completed", nil
 }

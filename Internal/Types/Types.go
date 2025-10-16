@@ -45,4 +45,14 @@ type SchoolInformation struct {
 	Curriculam string `json:"curriculum" validate:"required"`
 	Branch     string `json:"branch" validate:"required"`
 	City       string `json:"city" validate:"required"`
+	Priority   string `json:"priority" `
+}
+
+type InvitesAnalytics struct {
+	Total          int     `json:"total" validate:"reuired"`
+	Pending        int     `json:"pending" validate:"reuired"`
+	Completed      int     `json:"completed" validate:"reuired"`
+	Approved       int     `json:"approved" validate:"reuired"`
+	ApprovalRate   float64 `json:"approvalRate" validate:"reuired"`
+	AcceptanceRate float64 `json:"acceptanceRate" validate:"reuired"`
 }

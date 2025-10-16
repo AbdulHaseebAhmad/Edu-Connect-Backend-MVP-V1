@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email"
@@ -176,5 +177,49 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 			return
 		}
 		response.WriteJson(w, http.StatusCreated, response.GeneralSuccess("the link has been sent succcesfully"))
+	}
+}
+
+func GetInvitesAnalytics(sysadminStore Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		data, err := sysadminStore.GetInvitesAnalytics(r.Context())
+		if err != nil {
+			slog.Info("Analytics Error", "message", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+		response.WriteJson(w, http.StatusOK, data)
+	}
+}
+
+func GetInvitesApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("runing")
+		limitStr := r.URL.Query().Get("limit")
+		offLimitStr := r.URL.Query().Get("offlimit")
+
+		limit := 10
+		offlimit := 0
+
+		lim, err := strconv.Atoi(limitStr)
+		if err == nil && lim > 0 {
+			limit = lim
+		}
+
+		olimit, err := strconv.Atoi(offLimitStr)
+		if err == nil && olimit > 0 && olimit <= 100 {
+			offlimit = olimit
+		}
+
+		data, dberr := sysAdminStore.GetInvites(r.Context(), limit, offlimit)
+
+		if dberr != nil {
+			slog.Info("Error in Db operation", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, data)
+
 	}
 }

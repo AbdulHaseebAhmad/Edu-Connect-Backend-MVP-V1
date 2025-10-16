@@ -12,6 +12,8 @@ type SysAdmin interface {
 	AuthorizeSysAdmin(ctx context.Context, sessionToken string, csrfToken string) (string, bool)
 	GenerateInvite(ctx context.Context, adminid Types.SysAdminId, inviteData Types.SchoolInvite) (*Types.LinkGenerated, error)
 	GetInviteData(ctx context.Context, token string) (string, error)
+	GetInvitesAnalytics(ctx context.Context) (Types.InvitesAnalytics, error)
+	GetInvites(ctx context.Context, limit int, offlimit int) ([]Types.SchoolInformation, error)
 }
 
 type SchoolAdmin interface {
