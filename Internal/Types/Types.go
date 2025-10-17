@@ -46,6 +46,7 @@ type SchoolInformation struct {
 	Branch     string `json:"branch" validate:"required"`
 	City       string `json:"city" validate:"required"`
 	Priority   string `json:"priority" `
+	Token      string `json:"token"`
 }
 
 type InvitesAnalytics struct {

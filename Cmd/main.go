@@ -74,6 +74,7 @@ func main() {
 	router.Handle("POST /api/sysadmin/invite/send/{token}", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.SendInvite(sysAdminStore, smtp)))
 	router.Handle("GET /api/sysadmin/invite/analytics", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesAnalytics(sysAdminStore)))
 	router.Handle("GET /api/sysadmin/invite/applications", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesApplications(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/invite/respond", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondToSchoolApplication(sysAdminStore, smtp)))
 	// ->> Protected Routes End <--
 
 	//---->   Routes End   <-----

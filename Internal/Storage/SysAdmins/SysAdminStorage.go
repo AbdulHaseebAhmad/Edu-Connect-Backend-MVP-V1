@@ -183,3 +183,50 @@ func (p *SysAdminStore) GetInvites(ctx context.Context, limit int, offlimit int)
 
 	return arrayOfRows, nil
 }
+
+func (p *SysAdminStore) RespondToSchoolInvite(ctx context.Context, token string, status string) (string, error) {
+	var schoolInformation Types.SchoolInformation
+	now := time.Now().UTC()
+
+	tx, terr := p.DB.BeginTx(ctx, nil)
+	if terr != nil {
+		slog.Info("Db Error", "message", "there was an error in startin transaction ", "error", terr)
+		return "", terr
+	}
+	qerr := tx.QueryRowContext(ctx, "SELECT school_id,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,token from school_invites WHERE token = $1", token).Scan(&schoolInformation.Id, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.Token)
+	if qerr != nil {
+		tx.Rollback()
+		slog.Info("Db Error", "message", "there was an error querying the appication ", "error", qerr)
+		return "", qerr
+	}
+	_, uerr := tx.ExecContext(ctx, "UPDATE school_invites SET status = $1, approved_date = $2 WHERE token = $3", status, now, token)
+	if uerr != nil {
+		tx.Rollback()
+		slog.Info("Db Error", "message", "there was an error updating the status ", "error", uerr)
+		return "", uerr
+	}
+	if status == "approved" {
+		_, movedberr := tx.ExecContext(ctx, "INSERT INTO schools (school_id,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,token,status,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", &schoolInformation.Id, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.Token, status, now)
+		if movedberr != nil {
+			slog.Info("Db Error", "message", "there was an error moving to  school db ", "error", movedberr)
+			return "", uerr
+		}
+	}
+	txerr := tx.Commit()
+	if txerr != nil {
+		slog.Info("Transaction Error", "message", "there was an error manipulating db ", "error", txerr)
+		return "", txerr
+	}
+
+	return schoolInformation.Email, nil
+}
+
+func (p *SysAdminStore) SaveSchoolAdminCredentials(ctx context.Context, email string, password string, token string) error {
+
+	_, err := p.DB.ExecContext(ctx, "INSERT INTO school_credentials (email,hashed_password,token) VALUES ($1,$2,$3)", email, password, token)
+	if err != nil {
+		slog.Info("Db Error", "message", "there was an error saving credential to db ", "error", err)
+		return err
+	}
+	return nil
+}

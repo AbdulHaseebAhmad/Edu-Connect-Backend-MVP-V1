@@ -12,7 +12,9 @@ import (
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
+	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
 	response "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Responses"
+	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
 	"github.com/go-playground/validator/v10"
 )
 
@@ -173,7 +175,7 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the Link is missing")))
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(smtperr))
 			return
 		}
 		response.WriteJson(w, http.StatusCreated, response.GeneralSuccess("the link has been sent succcesfully"))
@@ -220,6 +222,65 @@ func GetInvitesApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
 		}
 
 		response.WriteJson(w, http.StatusOK, data)
+
+	}
+}
+
+func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.EmailSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		applicationId := r.URL.Query().Get("appid")
+		status := r.URL.Query().Get("status")
+		var message string
+
+		if applicationId == "" || status == "" {
+			slog.Info("Query Error", "message", "appid or status is missing", "appid= ", applicationId, "status= ", status)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("query Error")))
+			return
+		}
+
+		email, err := sysAdminStore.RespondToSchoolInvite(r.Context(), applicationId, status)
+		if err != nil {
+			slog.Info("invite db  Error", "message", "There was an error accepting or rejecting invite", "error", err)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		generatePassword, gerr := Tokens.GenerateToken(10)
+		if gerr != nil {
+			slog.Info("Password error", "message", "There was an error creating password", "error", gerr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(gerr))
+			return
+		}
+
+		securePassword, herr := HashPassword.Hashpassword(generatePassword)
+		if herr != nil {
+			slog.Info("Password error", "message", "There was an error hashing password", "error", herr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(herr))
+			return
+		}
+
+		cerr := sysAdminStore.SaveSchoolAdminCredentials(r.Context(), email, securePassword, applicationId)
+
+		if cerr != nil {
+			slog.Info("Db error", "message", "There was an error saving email & password", "error", cerr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(cerr))
+			return
+		}
+
+		if status == "approved" {
+			message = fmt.Sprintf("Peace and Blessings be upon you. Here is your email & password to access account. Eail: %s /n Password: %s", email, generatePassword)
+		} else {
+			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
+		}
+
+		smtperr := smtp.Send(email, "Response", message)
+
+		if smtperr != nil {
+			slog.Info("SMTP error", "message", smtperr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(smtperr))
+			return
+		}
+		response.WriteJson(w, http.StatusCreated, response.GeneralSuccess("Response sent succesfully"))
 
 	}
 }

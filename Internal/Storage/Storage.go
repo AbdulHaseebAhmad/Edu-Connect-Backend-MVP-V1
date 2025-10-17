@@ -14,6 +14,8 @@ type SysAdmin interface {
 	GetInviteData(ctx context.Context, token string) (string, error)
 	GetInvitesAnalytics(ctx context.Context) (Types.InvitesAnalytics, error)
 	GetInvites(ctx context.Context, limit int, offlimit int) ([]Types.SchoolInformation, error)
+	RespondToSchoolInvite(ctx context.Context, token string, status string) (email string, err error)
+	SaveSchoolAdminCredentials(ctx context.Context, email string, password string, token string) error
 }
 
 type SchoolAdmin interface {
