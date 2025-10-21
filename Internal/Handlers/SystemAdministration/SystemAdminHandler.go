@@ -12,15 +12,13 @@ import (
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
-	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
 	response "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Responses"
-	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
 	"github.com/go-playground/validator/v10"
 )
 
 func Login(storage Storage.SysAdmin) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Request to Login Student")
+		slog.Info("Request to Login system Admin")
 		if r.Header.Get("Content-Type") != "application/json" {
 			response.WriteJson(w, http.StatusUnsupportedMediaType, map[string]string{
 				"error": "Content-Type must be application/json",
@@ -69,7 +67,7 @@ func Login(storage Storage.SysAdmin) http.HandlerFunc {
 
 func Signup(storage Storage.SysAdmin) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Creating Sys Admin")
+		slog.Info("Creatingsystem Admin")
 		if r.Header.Get("Content-Type") != "application/json" {
 			response.WriteJson(w, http.StatusUnsupportedMediaType, map[string]string{
 				"error": "Content-Type must be application/json",
@@ -238,42 +236,20 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 			return
 		}
 
-		email, err := sysAdminStore.RespondToSchoolInvite(r.Context(), applicationId, status)
+		schoolInfo, generatePassword, err := sysAdminStore.RespondToSchoolInvite(r.Context(), applicationId, status)
 		if err != nil {
 			slog.Info("invite db  Error", "message", "There was an error accepting or rejecting invite", "error", err)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
 		}
 
-		generatePassword, gerr := Tokens.GenerateToken(10)
-		if gerr != nil {
-			slog.Info("Password error", "message", "There was an error creating password", "error", gerr)
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(gerr))
-			return
-		}
-
-		securePassword, herr := HashPassword.Hashpassword(generatePassword)
-		if herr != nil {
-			slog.Info("Password error", "message", "There was an error hashing password", "error", herr)
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(herr))
-			return
-		}
-
-		cerr := sysAdminStore.SaveSchoolAdminCredentials(r.Context(), email, securePassword, applicationId)
-
-		if cerr != nil {
-			slog.Info("Db error", "message", "There was an error saving email & password", "error", cerr)
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(cerr))
-			return
-		}
-
 		if status == "approved" {
-			message = fmt.Sprintf("Peace and Blessings be upon you. Here is your email & password to access account. Eail: %s /n Password: %s", email, generatePassword)
+			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application id Number: %s has been accepted. Here is your email & password to access account. Email: %s /n Password: %s", schoolInfo.Token, schoolInfo.Sys_Eamil, generatePassword)
 		} else {
 			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
 		}
 
-		smtperr := smtp.Send(email, "Response", message)
+		smtperr := smtp.Send(schoolInfo.Email, "Response", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)

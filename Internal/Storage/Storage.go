@@ -14,11 +14,11 @@ type SysAdmin interface {
 	GetInviteData(ctx context.Context, token string) (string, error)
 	GetInvitesAnalytics(ctx context.Context) (Types.InvitesAnalytics, error)
 	GetInvites(ctx context.Context, limit int, offlimit int) ([]Types.SchoolInformation, error)
-	RespondToSchoolInvite(ctx context.Context, token string, status string) (email string, err error)
-	SaveSchoolAdminCredentials(ctx context.Context, email string, password string, token string) error
+	RespondToSchoolInvite(ctx context.Context, token string, status string) (schoolInfo Types.SchoolInformation, generatePassword string, err error)
 }
 
 type SchoolAdmin interface {
 	ValidateLink(ctx context.Context, inviteToken string) (string, error)
 	SubmitInvite(ctx context.Context, schoolInfo Types.SchoolInformation, token string) (string, error)
+	SchoolAdminLogin(ctx context.Context, schooladmin Types.SchoolAdminLogin) (sessionToken string, csrfToken string, sysadminauth *Types.SchoolAdminAuthenticated, err error)
 }

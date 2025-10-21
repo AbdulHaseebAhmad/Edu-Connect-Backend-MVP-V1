@@ -11,6 +11,7 @@ import (
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	_ "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
+	Emailhelper "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Emails"
 	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
 	timecheck "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Time"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
@@ -78,7 +79,7 @@ func (p *SysAdminStore) SysAdminSignup(ctx context.Context, admin Types.SysAdmin
 	if hasherror != nil {
 		return hasherror
 	}
-	_, queryerror := p.DB.ExecContext(ctx, "INSERT INTO credentials (email,hashed_password,role,name,id) VALUES ($1,$2,$3,$4,$5)", admin.Email, hashedPassword, "role", admin.Name, admin.Id)
+	_, queryerror := p.DB.ExecContext(ctx, "INSERT INTO credentials (email,hashed_password,role,name,id) VALUES ($1,$2,$3,$4,$5)", admin.Email, hashedPassword, "sys_admin", admin.Name, admin.Id)
 	if queryerror != nil {
 		slog.Info("There was an error in querying db", "error", queryerror)
 		return queryerror
@@ -161,7 +162,7 @@ func (p *SysAdminStore) GetInvites(ctx context.Context, limit int, offlimit int)
 	var created_at time.Time
 
 	arrayOfRows := []Types.SchoolInformation{}
-	rows, qerr := p.DB.QueryContext(ctx, `SELECT school_name, school_email, admin_name, school_phone, school_country, school_id, school_curriculum, school_branch, school_city, created_at FROM school_invites WHERE created_at >= NOW() - INTERVAL '1 month' AND status = $1 ORDER BY created_at ASC LIMIT $2 OFFSET  $3`, status, limit, offlimit)
+	rows, qerr := p.DB.QueryContext(ctx, `SELECT school_name, school_email, admin_name, school_phone, school_country, school_id, school_curriculum, school_branch, school_city, created_at,token FROM school_invites WHERE created_at >= NOW() - INTERVAL '1 month' AND status = $1 ORDER BY created_at ASC LIMIT $2 OFFSET  $3`, status, limit, offlimit)
 	if qerr != nil {
 		slog.Info("db Error", "message", "Error in fetching analytics for invite dashboard", "error", qerr)
 		return []Types.SchoolInformation{}, qerr
@@ -171,7 +172,7 @@ func (p *SysAdminStore) GetInvites(ctx context.Context, limit int, offlimit int)
 
 	for rows.Next() {
 		var eachApplication Types.SchoolInformation
-		err := rows.Scan(&eachApplication.School, &eachApplication.Email, &eachApplication.Admin, &eachApplication.Phone, &eachApplication.Country, &eachApplication.Id, &eachApplication.Curriculam, &eachApplication.Branch, &eachApplication.City, &created_at)
+		err := rows.Scan(&eachApplication.School, &eachApplication.Email, &eachApplication.Admin, &eachApplication.Phone, &eachApplication.Country, &eachApplication.Id, &eachApplication.Curriculam, &eachApplication.Branch, &eachApplication.City, &created_at, &eachApplication.Token)
 		if err != nil {
 			slog.Info("error in populating type", "message", "row could not be converted into struct", "error", err)
 			return []Types.SchoolInformation{}, err
@@ -184,49 +185,67 @@ func (p *SysAdminStore) GetInvites(ctx context.Context, limit int, offlimit int)
 	return arrayOfRows, nil
 }
 
-func (p *SysAdminStore) RespondToSchoolInvite(ctx context.Context, token string, status string) (string, error) {
+func (p *SysAdminStore) RespondToSchoolInvite(ctx context.Context, token string, status string) (Types.SchoolInformation, string, error) {
 	var schoolInformation Types.SchoolInformation
 	now := time.Now().UTC()
-
+	var generatedPassword string
 	tx, terr := p.DB.BeginTx(ctx, nil)
 	if terr != nil {
 		slog.Info("Db Error", "message", "there was an error in startin transaction ", "error", terr)
-		return "", terr
+		return Types.SchoolInformation{}, "", terr
 	}
+
 	qerr := tx.QueryRowContext(ctx, "SELECT school_id,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,token from school_invites WHERE token = $1", token).Scan(&schoolInformation.Id, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.Token)
 	if qerr != nil {
 		tx.Rollback()
 		slog.Info("Db Error", "message", "there was an error querying the appication ", "error", qerr)
-		return "", qerr
+		return Types.SchoolInformation{}, "", qerr
 	}
+
 	_, uerr := tx.ExecContext(ctx, "UPDATE school_invites SET status = $1, approved_date = $2 WHERE token = $3", status, now, token)
 	if uerr != nil {
 		tx.Rollback()
 		slog.Info("Db Error", "message", "there was an error updating the status ", "error", uerr)
-		return "", uerr
+		return Types.SchoolInformation{}, "", uerr
 	}
+
 	if status == "approved" {
-		_, movedberr := tx.ExecContext(ctx, "INSERT INTO schools (school_id,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,token,status,created_at) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)", &schoolInformation.Id, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.Token, status, now)
+		username := schoolInformation.School + schoolInformation.Branch
+		sys_email := Emailhelper.GenerateEmails(schoolInformation.Email, "school admin")
+		schoolInformation.Sys_Eamil = sys_email
+		schoolInformation.Username = username
+
+		_, movedberr := tx.ExecContext(ctx, "INSERT INTO schools (school_id,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,token,status,created_at,username,sys_email) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)", &schoolInformation.Id, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.Token, status, now, username, sys_email)
 		if movedberr != nil {
 			slog.Info("Db Error", "message", "there was an error moving to  school db ", "error", movedberr)
-			return "", uerr
+			return Types.SchoolInformation{}, "", uerr
 		}
+
+		generatePassword, gerr := Tokens.GenerateToken(10)
+		if gerr != nil {
+			slog.Info("Password error", "message", "There was an error creating password", "error", gerr)
+			return Types.SchoolInformation{}, "", gerr
+		}
+
+		generatedPassword = generatePassword
+		securePassword, herr := HashPassword.Hashpassword(generatePassword)
+		if herr != nil {
+			slog.Info("Password error", "message", "There was an error hashing password", "error", herr)
+			return Types.SchoolInformation{}, "", herr
+		}
+
+		_, serr := p.DB.ExecContext(ctx, "INSERT INTO school_credentials (id,sys_email,hashed_password,name,role) VALUES ($1,$2,$3,$4,$5)", schoolInformation.Token, sys_email, securePassword, schoolInformation.School, "schooladmin")
+		if serr != nil {
+			slog.Info("Db Error", "message", "there was an error saving credential to db ", "error", serr)
+			return Types.SchoolInformation{}, "", serr
+		}
+
 	}
 	txerr := tx.Commit()
 	if txerr != nil {
 		slog.Info("Transaction Error", "message", "there was an error manipulating db ", "error", txerr)
-		return "", txerr
+		return Types.SchoolInformation{}, "", txerr
 	}
 
-	return schoolInformation.Email, nil
-}
-
-func (p *SysAdminStore) SaveSchoolAdminCredentials(ctx context.Context, email string, password string, token string) error {
-
-	_, err := p.DB.ExecContext(ctx, "INSERT INTO school_credentials (email,hashed_password,token) VALUES ($1,$2,$3)", email, password, token)
-	if err != nil {
-		slog.Info("Db Error", "message", "there was an error saving credential to db ", "error", err)
-		return err
-	}
-	return nil
+	return schoolInformation, generatedPassword, nil
 }

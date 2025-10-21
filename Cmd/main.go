@@ -58,7 +58,8 @@ func main() {
 	// router.HandleFunc("POST /api/sysadmin/invite/create", SysAdminHandler.CreateInvite(db))
 	// ->> Sys Admin Auth Routes End
 
-	//---> School Admin Routes Start <---
+	//---> School Admin Routes Start <----
+	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
 	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
 	router.HandleFunc("POST /api/schooladmin/invite/{token}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore))
 	//----> School Admin Routes Ennd <----

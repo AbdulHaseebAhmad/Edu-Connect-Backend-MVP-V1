@@ -8,6 +8,8 @@ import (
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
+	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
+	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
 )
 
 type SchoolAdminStore struct {
@@ -16,6 +18,55 @@ type SchoolAdminStore struct {
 
 func NewSchoolAdminStore(pg *Postgress.Postgress) *SchoolAdminStore {
 	return &SchoolAdminStore{pg}
+}
+
+func (p *SchoolAdminStore) SchoolAdminLogin(ctx context.Context, schooladmin Types.SchoolAdminLogin) (sessionToken string, csrfToken string, sysadminauth *Types.SchoolAdminAuthenticated, err error) {
+	var hashedPassword string
+
+	SchoolAdminAut := Types.SchoolAdminAuthenticated{
+		Authenticated: true,
+		Status:        true,
+	}
+
+	sessionId, sessionerr := Tokens.GenerateToken(10)
+	if sessionerr != nil {
+		slog.Info("There was a session ID token generation error", "error", sessionerr)
+		return "", "", &Types.SchoolAdminAuthenticated{}, sessionerr
+	}
+	queryerr := p.DB.QueryRowContext(ctx, "SELECT id,sys_email,hashed_password,role,name from school_credentials WHERE sys_email = $1", schooladmin.Email).Scan(&SchoolAdminAut.Id, &SchoolAdminAut.Email, &hashedPassword, &SchoolAdminAut.Role, &SchoolAdminAut.Name)
+	if queryerr != nil {
+		slog.Info("There was an error in querying hashed password from db", "error", queryerr)
+		return "", "", &Types.SchoolAdminAuthenticated{}, queryerr
+	}
+
+	passwordmatch, matcherr := HashPassword.Unhashpassword(schooladmin.Password, hashedPassword)
+
+	if matcherr != nil {
+		slog.Info("There was an internal error", "error", "Hashin algorithim error")
+		return "", "", &Types.SchoolAdminAuthenticated{}, errors.New("authentication Error")
+	}
+	if !passwordmatch {
+		slog.Info("There was an auth error", "error", "Password/Email is wrong")
+		return "", "", &Types.SchoolAdminAuthenticated{}, errors.New("authentication Error")
+	}
+	session_token, stokenerr := Tokens.GenerateToken(10)
+	if stokenerr != nil {
+		slog.Info("There was a session token generation error", "error", stokenerr)
+		return "", "", &Types.SchoolAdminAuthenticated{}, stokenerr
+	}
+	csrf_token, csrftokenerr := Tokens.GenerateToken(10)
+	if csrftokenerr != nil {
+		slog.Info("There was a csrf token generation error", "error", stokenerr)
+		return "", "", &Types.SchoolAdminAuthenticated{}, csrftokenerr
+	}
+
+	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, session_id, credential_id,role)  VALUES ($1, $2, $3, $4, $5,$6)", session_token, csrf_token, SchoolAdminAut.Email, sessionId, SchoolAdminAut.Id, SchoolAdminAut.Role)
+	if insertqerr != nil {
+		slog.Info("There was an error inserting data to db", "error", insertqerr)
+		return "", "", &Types.SchoolAdminAuthenticated{}, nil
+	}
+
+	return session_token, csrf_token, &SchoolAdminAut, nil
 }
 
 func (p *SchoolAdminStore) ValidateLink(ctx context.Context, inviteToken string) (string, error) {

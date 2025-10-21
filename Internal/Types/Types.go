@@ -5,6 +5,11 @@ type SysAdminLogin struct {
 	Password string `json:"password" validate:"required,min=6"`
 }
 
+type SchoolAdminLogin struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required,min=6"`
+}
+
 type SysAdminSignup struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
@@ -13,6 +18,15 @@ type SysAdminSignup struct {
 }
 
 type SysAdminAuthenticated struct {
+	Role          string `json:"role" validate:"required"`
+	Authenticated bool   `json:"authenticated" validate:"required"`
+	Name          string `json:"name" validate:"required"`
+	Status        bool   `json:"status" validate:"required"`
+	Email         string `json:"email" validate:"required,email"`
+	Id            string `json:"id" validate:"required"`
+}
+
+type SchoolAdminAuthenticated struct {
 	Role          string `json:"role" validate:"required"`
 	Authenticated bool   `json:"authenticated" validate:"required"`
 	Name          string `json:"name" validate:"required"`
@@ -47,6 +61,8 @@ type SchoolInformation struct {
 	City       string `json:"city" validate:"required"`
 	Priority   string `json:"priority" `
 	Token      string `json:"token"`
+	Sys_Eamil  string `json:"sys_email"`
+	Username   string `json:"username"`
 }
 
 type InvitesAnalytics struct {
