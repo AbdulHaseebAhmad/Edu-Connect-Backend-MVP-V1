@@ -14,11 +14,15 @@ import (
 	Configurator "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Config"
 	Smtp "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email/SMTP"
 	SchoolAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SchoolAdministration"
+	StudentAppHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/StudentsApp"
 	SysAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SystemAdministration"
+	UniversityHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/UniversityPortal"
 	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	SchoolAdminStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/SchoolAdmin"
+	StudentsAppStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Students"
 	SysAdminStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/SysAdmins"
+	UniversityStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/University"
 	"github.com/rs/cors"
 )
 
@@ -39,10 +43,15 @@ func main() {
 	slog.Info("Storage Initialized", slog.String("env", cfg.Env), slog.String("Path", cfg.StoragePath))
 
 	// Wrap the DB connection in your role-based store that implements Storage.
+	studentStore := StudentsAppStorage.NewStudentsAppStore(db)
+
+	// Wrap the DB connection in your role-based store that implements Storage.
 	sysAdminStore := SysAdminStorage.NewSysAdminStore(db)
 
 	// Wrap the DB connection in your role-based store that implements Storage.
 	schoolAdminStore := SchoolAdminStorage.NewSchoolAdminStore(db)
+
+	universityStore := UniversityStorage.NewUniversityStore(db)
 
 	//setup router
 	router := http.NewServeMux()
@@ -52,17 +61,33 @@ func main() {
 		w.Write([]byte("Welcome To the App"))
 	})
 
+	//University Routes
+
+	router.HandleFunc("POST /api/university/login", UniversityHandler.Login(universityStore))
+
+	router.Handle("GET /api/university/app/applications", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetStudntsApplications(universityStore)))
+	router.Handle("GET /api/university/app/applications/respond", Middlewares.Authorizer(sysAdminStore, UniversityHandler.RespondStudntsApplications(universityStore)))
+	router.Handle("GET /api/university/app/programs/list", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetUniversityProgramsList(universityStore)))
+	router.Handle("GET /api/university/app/program/details", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetProgramDetails(universityStore)))
+	router.Handle("POST /api/university/app/program/add", Middlewares.Authorizer(sysAdminStore, UniversityHandler.AddNewProgram(universityStore)))
+	router.Handle("POST /api/university/app/program/update", Middlewares.Authorizer(sysAdminStore, UniversityHandler.UpdateProgram(universityStore)))
+
+	//---> School Admin Routes Start <----
+	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
+	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
+	router.HandleFunc("POST /api/schooladmin/invite/{invitation_id}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore))
+
+	router.HandleFunc("GET /api/schooladmin/unprocessed/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetUnProcessedStudentsList(schoolAdminStore)))
+	router.HandleFunc("GET /api/schooladmin/verify/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.VerifyStudentAccount(schoolAdminStore)))
+	router.HandleFunc("GET /api/schooladmin/processed/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetProcessedStudentsList(schoolAdminStore)))
+	router.HandleFunc("GET /api/schooladmin/profile", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetSchoolProfileData(schoolAdminStore)))
+	//----> School Admin Routes Ennd <----
+
 	//->> Sys Admin Auth Routes Start
 	router.HandleFunc("POST /api/sysadmin/login", SysAdminHandler.Login(sysAdminStore))
 	router.HandleFunc("POST /api/sysadmin/signup", SysAdminHandler.Signup(sysAdminStore))
 	// router.HandleFunc("POST /api/sysadmin/invite/create", SysAdminHandler.CreateInvite(db))
 	// ->> Sys Admin Auth Routes End
-
-	//---> School Admin Routes Start <----
-	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
-	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
-	router.HandleFunc("POST /api/schooladmin/invite/{token}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore))
-	//----> School Admin Routes Ennd <----
 
 	// ->> Protected Routes Start <--
 
@@ -72,12 +97,48 @@ func main() {
 
 	// --> Sys Admin  Protected Routes
 	router.Handle("POST /api/sysadmin/invite/create", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.CreateInvite(sysAdminStore)))
-	router.Handle("POST /api/sysadmin/invite/send/{token}", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.SendInvite(sysAdminStore, smtp)))
+	router.Handle("POST /api/sysadmin/invite/send/{invitation_id}", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.SendInvite(sysAdminStore, smtp)))
 	router.Handle("GET /api/sysadmin/invite/analytics", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesAnalytics(sysAdminStore)))
-	router.Handle("GET /api/sysadmin/invite/applications", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetInvitesApplications(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/invite/applications", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetSchoolApplications(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/invite/application", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetSchoolApplication(sysAdminStore)))
 	router.Handle("GET /api/sysadmin/invite/respond", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondToSchoolApplication(sysAdminStore, smtp)))
+	router.Handle("GET /api/sysadmin/invite/lists", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetAnalyticalLists(sysAdminStore)))
+
+	router.Handle("GET /api/sysadmin/schools/get/invites", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetAllInvites(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/student/get/registered", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetRegisteredStudents(sysAdminStore)))
+
+	router.Handle("GET /api/sysadmin/student/app/registry", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetStudentsRegistry(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/student/app/respond", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondApplication(sysAdminStore, smtp)))
+	router.Handle("GET /api/sysadmin/student/documents", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetStudentDocuments(sysAdminStore)))
+
+	router.Handle("GET /api/sysadmin/get/receipts", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetReceipts(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/update/receipt/status", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondToReceipts(sysAdminStore)))
+	// router.Handle("GET /api/sysadmin/review/applications/university", Middlewares.Authorizer(sysAdminStore,SysAdminHandler.))
+
 	// ->> Protected Routes End <--
 
+	// --> student App Routes
+
+	router.Handle("POST /api/students/app/signup", StudentAppHandler.StudentSignup(studentStore))
+	router.Handle("POST /api/students/app/login", StudentAppHandler.StudentSignin(studentStore))
+	// router.Handle("GET /api/students/app/countries", StudentAppHandler.GetCountriesList(studentStore))
+
+	// --> Student app Protected Routes
+
+	router.Handle("GET /api/students/app/countries", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetCountriesList(studentStore)))
+	router.Handle("GET /api/students/app/universities", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetUniversitiesList(studentStore)))
+	router.Handle("GET /api/students/app/university", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetUniversityProfile(studentStore)))
+	router.Handle("GET /api/students/app/programs", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetUniversityPrograms(studentStore)))
+	router.Handle("GET /api/students/app/profile", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetStudentProfileDetails(studentStore)))
+	router.Handle("GET /api/students/app/profile/update", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.UpdateStudentProfileDetails(studentStore)))
+	router.Handle("GET /api/students/app/documents", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetstudentsDocuments(studentStore)))
+	router.Handle("POST /api/students/app/documents/upload", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.UploadStudentDocuments(studentStore)))
+	router.Handle("GET /api/students/app/documents/get", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetStudentsDocument(studentStore)))
+	router.Handle("POST /api/students/app/receipt/upload", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.UploadApplicationReceipt(studentStore)))
+
+	router.Handle("GET /api/students/app/university/apply", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ApplyToUniversity(studentStore)))
+	router.Handle("GET /api/students/app/university/applications", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetApplicationsData(studentStore)))
+	router.Handle("GET /api/students/app/application/check", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.VerifyApplication(studentStore)))
 	//---->   Routes End   <-----
 
 	// configure CORS options

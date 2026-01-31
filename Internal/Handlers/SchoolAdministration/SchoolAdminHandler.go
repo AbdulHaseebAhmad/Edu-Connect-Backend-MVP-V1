@@ -64,14 +64,14 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 }
 func LinkValidation(storage Storage.SchoolAdmin) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		token := r.URL.Query().Get("token")
-		if token == "" {
-			slog.Info("Token Error", "error", "token is missing in request")
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("token is invalid")))
+		invitation_id := r.URL.Query().Get("invitation_id")
+		if invitation_id == "" {
+			slog.Info("Token Error", "error", "invitation_id is missing in request")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("invitation_id is invalid")))
 			return
 		}
 
-		status, err := storage.ValidateLink(r.Context(), token)
+		status, err := storage.ValidateLink(r.Context(), invitation_id)
 		if err != nil {
 			slog.Info("Token Error", "error", err)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
@@ -86,14 +86,14 @@ func SubmitInviteData(storage Storage.SchoolAdmin) http.HandlerFunc {
 		var SchoolInformation Types.SchoolInformation
 
 		//get the token from path,
-		token := r.PathValue("token")
-		if token == "" {
-			slog.Info("Token Error", "error", "token is missing")
+		invitation_id := r.PathValue("invitation_id")
+		if invitation_id == "" {
+			slog.Info("Token Error", "error", "invitation_id is missing")
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the id to the form is missing")))
 			return
 		}
 		//validate it
-		status, err := storage.ValidateLink(r.Context(), token)
+		status, err := storage.ValidateLink(r.Context(), invitation_id)
 		if err != nil {
 			slog.Info("Token Error", "error", err)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
@@ -101,8 +101,8 @@ func SubmitInviteData(storage Storage.SchoolAdmin) http.HandlerFunc {
 		}
 
 		if status != "pending" {
-			slog.Info("Token Error", "error", "token is already consumed")
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("token is already consumed")))
+			slog.Info("Token Error", "error", "invitation_id is already consumed")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("invitation_id is already consumed")))
 			return
 
 		}
@@ -123,7 +123,7 @@ func SubmitInviteData(storage Storage.SchoolAdmin) http.HandlerFunc {
 		}
 		//update scholInvites db with information
 		// mark completed in school_invites table
-		status, qerr := storage.SubmitInvite(r.Context(), SchoolInformation, token)
+		status, qerr := storage.SubmitInvite(r.Context(), SchoolInformation)
 		if qerr != nil {
 			slog.Info("Db Error", "error", qerr)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(qerr))
@@ -133,4 +133,98 @@ func SubmitInviteData(storage Storage.SchoolAdmin) http.HandlerFunc {
 		response.WriteJson(w, http.StatusCreated, status)
 	}
 
+}
+
+func GetUnProcessedStudentsList(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+
+		if school_id == "" {
+			slog.Error("invalidurl request", "error", "incomplete parameters")
+			response.WriteJson(w, http.StatusBadRequest, "parameters missing")
+			return
+		}
+
+		listOfStudents, dberr := storage.GetUnProcessedStudentsList(r.Context(), school_id)
+
+		if dberr != nil {
+			slog.Error("Error inside Db", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfStudents)
+
+	}
+}
+
+func VerifyStudentAccount(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		fmt.Println("running verify student handler")
+		school_id := r.URL.Query().Get("school_id")
+		student_id := r.URL.Query().Get("student_id")
+		status := r.URL.Query().Get("status")
+
+		if school_id == "" || student_id == "" || status == "" {
+			slog.Error("invalidurl request", "error", "incomplete parameters")
+			response.WriteJson(w, http.StatusBadRequest, "parameters missing")
+			return
+		}
+
+		dberr := storage.VerifyStudentAccount(r.Context(), school_id, student_id, status)
+
+		if dberr != nil {
+			slog.Error("Db Error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "status updated")
+	}
+}
+
+func GetProcessedStudentsList(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+		status := r.URL.Query().Get("status")
+
+		if school_id == "" {
+			slog.Error("invalidurl request", "error", "incomplete parameters")
+			response.WriteJson(w, http.StatusBadRequest, "parameters missing")
+			return
+		}
+
+		listOfStudents, dberr := storage.GetProcessedStudentsList(r.Context(), school_id, status)
+
+		if dberr != nil {
+			slog.Error("Error inside Db", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfStudents)
+
+	}
+}
+
+func GetSchoolProfileData(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+
+		if school_id == "" {
+			slog.Error("invalid url request", "error", "parameters missing")
+			response.WriteJson(w, http.StatusBadRequest, "Missing Params")
+			return
+		}
+
+		schoolData, dberr := storage.GetSchoolProfileData(r.Context(), school_id)
+
+		if dberr != nil {
+			slog.Error("database error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, schoolData)
+	}
 }

@@ -126,6 +126,7 @@ func CreateInvite(storage Storage.SysAdmin) http.HandlerFunc {
 
 		// call the db
 		generatedData, terr := storage.GenerateInvite(r.Context(), sysAdminId, schoolInvite)
+
 		if terr != nil {
 			slog.Info("There was an error in Generating Token", "error", terr)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(terr))
@@ -140,7 +141,7 @@ func CreateInvite(storage Storage.SysAdmin) http.HandlerFunc {
 func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var link string
-		token := r.PathValue("token")
+		invitation_id := r.PathValue("invitation_id")
 		berr := json.NewDecoder(r.Body).Decode(&link)
 
 		if berr != nil {
@@ -149,10 +150,10 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 			return
 		}
 
-		// fmt.Println(token, link)
-		if token == "" {
-			slog.Info("Token error", "message", "token is missing")
-			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the token is missing")))
+		// fmt.Println(invitation_id, link)
+		if invitation_id == "" {
+			slog.Info("Token error", "message", "invitation_id is missing")
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("the invitation_id is missing")))
 			return
 		}
 
@@ -162,7 +163,7 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 			return
 		}
 
-		email, qerr := sysadminStore.GetInviteData(r.Context(), token)
+		email, qerr := sysadminStore.GetInviteData(r.Context(), invitation_id)
 		if qerr != nil {
 			slog.Info("Token error", "error", qerr)
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(qerr))
@@ -192,7 +193,7 @@ func GetInvitesAnalytics(sysadminStore Storage.SysAdmin) http.HandlerFunc {
 	}
 }
 
-func GetInvitesApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
+func GetSchoolApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("runing")
 		limitStr := r.URL.Query().Get("limit")
@@ -211,7 +212,7 @@ func GetInvitesApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
 			offlimit = olimit
 		}
 
-		data, dberr := sysAdminStore.GetInvites(r.Context(), limit, offlimit)
+		listOfApplications, dberr := sysAdminStore.GetSchoolApplications(r.Context(), limit, offlimit)
 
 		if dberr != nil {
 			slog.Info("Error in Db operation", "error", dberr)
@@ -219,24 +220,61 @@ func GetInvitesApplications(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
 			return
 		}
 
-		response.WriteJson(w, http.StatusOK, data)
+		response.WriteJson(w, http.StatusOK, listOfApplications)
+
+	}
+}
+func GetSchoolApplication(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		application_id := r.URL.Query().Get("application_id")
+
+		if application_id == "" {
+			slog.Info("invalid url request", "error", "missing query parameter application_id")
+			response.WriteJson(w, http.StatusInternalServerError, "invaalid url request")
+			return
+		}
+		listOfApplications, dberr := sysAdminStore.GetSchoolApplication(r.Context(), application_id)
+
+		if dberr != nil {
+			slog.Info("Error in Db operation", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfApplications)
+
+	}
+}
+
+func GetAllInvites(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		allInvitesSent, dberr := storage.GetAllInvites(r.Context())
+
+		if dberr != nil {
+			slog.Info("Error in Db operation", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, allInvitesSent)
 
 	}
 }
 
 func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.EmailSender) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		applicationId := r.URL.Query().Get("appid")
+		application_id := r.URL.Query().Get("application_id")
 		status := r.URL.Query().Get("status")
 		var message string
 
-		if applicationId == "" || status == "" {
-			slog.Info("Query Error", "message", "appid or status is missing", "appid= ", applicationId, "status= ", status)
+		if application_id == "" || status == "" {
+			slog.Info("Query Error", "message", "appid or status is missing", "appid= ", application_id, "status= ", status)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(errors.New("query Error")))
 			return
 		}
 
-		schoolInfo, generatePassword, err := sysAdminStore.RespondToSchoolInvite(r.Context(), applicationId, status)
+		schoolInfo, generatePassword, err := sysAdminStore.RespondToSchoolInvite(r.Context(), application_id, status)
 		if err != nil {
 			slog.Info("invite db  Error", "message", "There was an error accepting or rejecting invite", "error", err)
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
@@ -244,7 +282,7 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 		}
 
 		if status == "approved" {
-			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application id Number: %s has been accepted. Here is your email & password to access account. Email: %s /n Password: %s", schoolInfo.Token, schoolInfo.Sys_Eamil, generatePassword)
+			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application id Number: %s has been accepted. Here is your email & password to access account. Email: %s /n Password: %s. below is attached your school code to share with your students on sign up %s", schoolInfo.SchoolId, schoolInfo.Sys_Eamil, generatePassword, schoolInfo.Code)
 		} else {
 			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
 		}
@@ -257,6 +295,168 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 			return
 		}
 		response.WriteJson(w, http.StatusCreated, response.GeneralSuccess("Response sent succesfully"))
+
+	}
+}
+
+func GetAnalyticalLists(sysAdminStore Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		list, err := sysAdminStore.GetAnalyticsList(r.Context())
+		if err != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, list)
+	}
+}
+
+func GetStudentsRegistry(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		status := r.URL.Query().Get("status")
+		if status == "" {
+			slog.Error("The status param is missing", "error", "the student status is missing")
+			response.WriteJson(w, http.StatusBadRequest, "The status is missing")
+			return
+		}
+
+		studentsList, err := storage.GetStudentsRegistry(r.Context(), status)
+
+		if err != nil {
+			slog.Error("Error in Db", "error", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, studentsList)
+	}
+}
+
+func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		action := r.URL.Query().Get("action")
+		id := r.URL.Query().Get("id")
+
+		if action == "" || id == "" {
+			slog.Error("Missing param", "error", "there is a missing param in url")
+			response.WriteJson(w, http.StatusBadRequest, "Incomplete Action")
+			return
+		}
+
+		fmt.Println(action, id)
+		email, password, err := storage.RespondApplication(r.Context(), action, id)
+
+		if err != nil {
+			slog.Error("there was an error in db operation", "error", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		message := ""
+		if action == "approved" {
+			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application has been accepted. Here is your email & password to access account. Email: %s /n Password: %s", email, password)
+		} else {
+			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
+
+		}
+
+		smtp.Send(email, "Acceptance of Application", message)
+		response.WriteJson(w, http.StatusOK, "The Operation was succesfull")
+	}
+}
+
+func GetStudentDocuments(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		documentName := r.URL.Query().Get("docname")
+		studentId := r.URL.Query().Get("studentId")
+		documentmime := r.URL.Query().Get("docmime")
+
+		if studentId == "" || documentName == "" {
+			slog.Error("error in requested url", "error", "missing parameters")
+			response.WriteJson(w, http.StatusBadRequest, "Missing Parameters")
+			return
+		}
+
+		document, err := storage.GetStudentsDocument(r.Context(), studentId, documentName, documentmime)
+
+		if err != nil {
+			slog.Error("Error in DB", "error", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		w.Header().Set("Content-Type", document.MimeType)
+		w.Header().Set("Content-Disposition", `inline; filename="requested-document"`)
+		w.WriteHeader(http.StatusOK)
+		_, _ = w.Write(document.Data)
+
+	}
+}
+
+func GetReceipts(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id := r.URL.Query().Get("student_id")
+
+		if student_id == "" {
+			receiptsList, err := storage.GetAllReceipts(r.Context())
+
+			if err != nil {
+				slog.Error("Db error", "error", err)
+				response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+				return
+			}
+
+			response.WriteJson(w, http.StatusOK, receiptsList)
+			return
+		}
+		receipt, err := storage.GetReceiptDetails(r.Context(), student_id)
+
+		if err != nil {
+			slog.Error("Db error", "error", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, receipt)
+
+	}
+}
+
+func RespondToReceipts(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		receipt_id := r.URL.Query().Get("receipt_id")
+		status := r.URL.Query().Get("status")
+
+		if status == "" || receipt_id == "" {
+			slog.Error("error in requested url", "error", "missing parameters")
+			response.WriteJson(w, http.StatusBadRequest, "Missing Parameters")
+			return
+		}
+
+		dberr := storage.RespondToReceipts(r.Context(), receipt_id, status)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "receipt status updated")
+
+	}
+}
+
+func GetRegisteredStudents(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		registeredStudents, dberr := storage.GetRegisteredStudents(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, registeredStudents)
 
 	}
 }
