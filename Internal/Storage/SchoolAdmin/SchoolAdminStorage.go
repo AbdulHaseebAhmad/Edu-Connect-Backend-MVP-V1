@@ -2,6 +2,7 @@ package SchoolAdminStorage
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -224,8 +225,7 @@ func (p *SchoolAdminStore) VerifyStudentAccount(ctx context.Context, school_id s
 func (p *SchoolAdminStore) GetProcessedStudentsList(ctx context.Context, school_id string, status string) ([]Types.StudentProfile, error) {
 
 	var studentDetailsList []Types.StudentProfile
-
-	rows, q2err := p.DB.QueryContext(ctx, `SELECT DISTINCT 
+	rows, q2err := p.DB.QueryContext(ctx, `SELECT  
 	stc.student_id,
 	sp.first_name, sp.last_name, sp.middle_name, sp.dob, sp.gender, sp.nationality, 
 	sp.passport_number, sp.passport_expiry, sp.marrital_status,
@@ -236,13 +236,38 @@ func (p *SchoolAdminStore) GetProcessedStudentsList(ctx context.Context, school_
 	se.language_type, se.language_overall_score, se.language_reading, 
 	se.language_writting, se.language_speaking, se.language_listening,
 	spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
-	spr.annual_budget, spr.scholarship_interest
+	spr.annual_budget, spr.scholarship_interest,
+
+	json_agg(
+        json_build_object(
+            'document_id', doc.document_id,
+            'name', doc.document_name,
+            'document_name', doc.document_file_name,
+            'status', doc.document_status,
+            'data', doc.document,
+            'type', doc.document_type
+        	) 
+		)AS documents
+
 	FROM students_credentials AS stc 
 	LEFT JOIN student_profile AS sp ON stc.student_id = sp.student_id 
 	LEFT JOIN student_contact AS sc ON stc.student_id = sc.student_id
 	LEFT JOIN student_education AS se ON stc.student_id = se.student_id
 	LEFT JOIN students_preferences AS spr ON stc.student_id = spr.student_id
+	LEFT JOIN students_documents AS doc ON doc.student_id = spr.student_id
 	WHERE stc.school_id = $1 AND stc.school_verified = $2
+	GROUP BY
+    stc.student_id,
+    sp.first_name, sp.last_name, sp.middle_name, sp.dob, sp.gender, sp.nationality, 
+    sp.passport_number, sp.passport_expiry, sp.marrital_status,
+    sc.email, sc.phone_number, sc.whatsapp_number, sc.permanent_address, sc.street_address,
+    sc.city, sc.state_province, sc.zip_postal_code, sc.emergency_phone, 
+    sc.emergency_contact_name, sc.emergency_relationship,
+    se.school_name, se.curriculum, se.graduation_year, se.cummulative_score,
+    se.language_type, se.language_overall_score, se.language_reading, 
+    se.language_writting, se.language_speaking, se.language_listening,
+    spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
+    spr.annual_budget, spr.scholarship_interest
 `, school_id, status)
 
 	if q2err != nil {
@@ -252,6 +277,8 @@ func (p *SchoolAdminStore) GetProcessedStudentsList(ctx context.Context, school_
 
 	for rows.Next() {
 		var studentDetails Types.StudentProfile
+		var docBytes []byte
+
 		scanerr := rows.Scan(
 			&studentDetails.StudentId,
 			&studentDetails.StudentPersonalDetails.First_Name,
@@ -289,10 +316,18 @@ func (p *SchoolAdminStore) GetProcessedStudentsList(ctx context.Context, school_
 			&studentDetails.StudentPrefferences.PrefferedDate,
 			&studentDetails.StudentPrefferences.AnnualBudget,
 			&studentDetails.StudentPrefferences.Schalarship,
+			&docBytes,
 		)
 
 		if scanerr != nil {
 			return nil, scanerr
+		}
+
+		err := json.Unmarshal(docBytes, &studentDetails.Documents)
+
+		if err != nil {
+			return nil, err
+
 		}
 
 		studentDetailsList = append(studentDetailsList, studentDetails)

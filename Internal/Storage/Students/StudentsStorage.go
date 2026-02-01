@@ -397,54 +397,77 @@ func (p *StudentsAppStore) UpdatePreferences(ctx context.Context, student_id str
 	return nil
 }
 
-func (p *StudentsAppStore) GetstudentsDocuments(ctx context.Context, student_id string) (Types.StudentDocuments, error) {
-	var documentsList Types.StudentDocuments
-	err := p.DB.QueryRowContext(ctx,
-		"SELECT cv_mime_type,cv_status,cv_name,passport_mime_type,passport_status,passport_name,identity_mime_type,identity_status,identity_name,high_school_mime_type,high_school_status,high_school_name,language_proefficiency_mime_type,language_proefficiency_status,language_proefficiency_name,cover_letter_mime_type,cover_letter_status,cover_letter_name,motivation_letter_mime_type,motivation_letter_status,motivation_letter_name from students_documents where student_id = $1 ", student_id).Scan(
-		&documentsList.Cv.MimeType, &documentsList.Cv.Status, &documentsList.Cv.Name,
-		&documentsList.Passport.MimeType, &documentsList.Passport.Status, &documentsList.Passport.Name,
-		&documentsList.Identity.MimeType, &documentsList.Identity.Status, &documentsList.Identity.Name,
-		&documentsList.Highschool.MimeType, &documentsList.Highschool.Status, &documentsList.Highschool.Name,
-		&documentsList.Language.MimeType, &documentsList.Language.Status, &documentsList.Language.Name,
-		&documentsList.Coverletter.MimeType, &documentsList.Coverletter.Status, &documentsList.Coverletter.Name,
-		&documentsList.Motivationletter.MimeType, &documentsList.Motivationletter.Status, &documentsList.Motivationletter.Name,
-	)
+func (p *StudentsAppStore) GetstudentsDocuments(ctx context.Context, student_id string) ([]Types.UploadDocument, error) {
+	var documentsList []Types.UploadDocument
+	// err := p.DB.QueryRowContext(ctx,
+	// 	"SELECT cv_mime_type,cv_status,cv_name,passport_mime_type,passport_status,passport_name,identity_mime_type,identity_status,identity_name,high_school_mime_type,high_school_status,high_school_name,language_proefficiency_mime_type,language_proefficiency_status,language_proefficiency_name,cover_letter_mime_type,cover_letter_status,cover_letter_name,motivation_letter_mime_type,motivation_letter_status,motivation_letter_name from students_documents where student_id = $1 ", student_id).Scan(
+	// 	&documentsList.Cv.MimeType, &documentsList.Cv.Status, &documentsList.Cv.Name,
+	// 	&documentsList.Passport.MimeType, &documentsList.Passport.Status, &documentsList.Passport.Name,
+	// 	&documentsList.Identity.MimeType, &documentsList.Identity.Status, &documentsList.Identity.Name,
+	// 	&documentsList.Highschool.MimeType, &documentsList.Highschool.Status, &documentsList.Highschool.Name,
+	// 	&documentsList.Language.MimeType, &documentsList.Language.Status, &documentsList.Language.Name,
+	// 	&documentsList.Coverletter.MimeType, &documentsList.Coverletter.Status, &documentsList.Coverletter.Name,
+	// 	&documentsList.Motivationletter.MimeType, &documentsList.Motivationletter.Status, &documentsList.Motivationletter.Name,
+	// )
+	rows, err := p.DB.QueryContext(ctx,
+		`SELECT	
+		document_id,
+		document,
+		document_name,
+		document_file_name,
+		document_type,
+		document_status
+		from students_documents where student_id = $1 
+		`, student_id)
 
 	if err != nil {
-		return Types.StudentDocuments{}, err
+		return nil, err
+	}
+
+	for rows.Next() {
+		var document Types.UploadDocument
+		scanerr := rows.Scan(&document.Id, &document.Data, &document.Name, &document.Document, &document.MimeType, &document.Status)
+
+		if scanerr != nil {
+			return nil, scanerr
+		}
+		documentsList = append(documentsList, document)
+
 	}
 	return documentsList, nil
 }
 
 func (p *StudentsAppStore) UploadStudentDocuments(ctx context.Context, studentDocs Types.UploadDocument, documentBytes []byte, student_id string) error {
 	// fmt.Println(studentDocs, string(documentBytes), student_id)
-	doccolumn := studentDocs.Document
-	docMimecolumn := studentDocs.Document + "_mime_type"
-	docNamecolumn := studentDocs.Document + "_name"
-	docstatuscolumn := studentDocs.Document + "_status"
+	// doccolumn := studentDocs.Document
+	// docMimecolumn := studentDocs.Document + "_mime_type"
+	// docNamecolumn := studentDocs.Document + "_name"
+	// docstatuscolumn := studentDocs.Document + "_status"
 
-	query := fmt.Sprintf("UPDATE students_documents SET  %s = $1, %s = $2, %s = $3, %s = $4 where student_id = $5", doccolumn, docNamecolumn, docMimecolumn, docstatuscolumn)
+	// query2 := fmt.Sprintf("UPDATE students_documents SET  %s = $1, %s = $2, %s = $3, %s = $4 where student_id = $5", doccolumn, docNamecolumn, docMimecolumn, docstatuscolumn)
+	// fmt.Println(query2)
+	// query := fmt.Sprintf("UPDATE students_documents SET  document_type = $1,  = $2, %s = $3, %s = $4 where student_id = $5",  docNamecolumn, docMimecolumn, docstatuscolumn)
 
-	_, err := p.DB.ExecContext(ctx, query, documentBytes, studentDocs.Name, studentDocs.MimeType, studentDocs.Status, student_id)
+	_, err := p.DB.ExecContext(ctx, `insert into students_documents (document, document_file_name,document_name, document_type, document_status, student_id) values ($1,$2,$3,$4,$5,$6)`, documentBytes, studentDocs.Name, studentDocs.Document, studentDocs.MimeType, studentDocs.Status, student_id)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (p *StudentsAppStore) GetStudentsDocument(ctx context.Context, studentId string, documentname string) (Types.Documents, error) {
+func (p *StudentsAppStore) GetStudentsDocument(ctx context.Context, studentId string, document_id string) (Types.Documents, error) {
 	var Document Types.Documents
 
-	column := documentname
-	columnmime := documentname + "_mime_type"
-	columnname := documentname + "_name"
+	// column := documentname
+	// columnmime := documentname + "_mime_type"
+	// columnname := documentname + "_name"
 
-	query := fmt.Sprintf(
-		`SELECT %s ,%s, %s FROM students_documents WHERE student_id = $1`,
-		columnname, column, columnmime,
-	)
+	// query := fmt.Sprintf(
+	// 	`SELECT %s ,%s, %s FROM students_documents WHERE student_id = $1`,
+	// 	columnname, column, columnmime,
+	// )
 
-	err := p.DB.QueryRowContext(ctx, query, studentId).Scan(&Document.Name, &Document.Data, &Document.MimeType)
+	err := p.DB.QueryRowContext(ctx, `select document_name,document,document_type from students_documents where document_id = $1 and student_id = $2`, document_id, studentId).Scan(&Document.Name, &Document.Data, &Document.MimeType)
 
 	if err != nil {
 		return Types.Documents{}, err

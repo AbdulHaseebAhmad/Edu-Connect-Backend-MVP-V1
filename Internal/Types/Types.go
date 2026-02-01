@@ -159,11 +159,12 @@ type Documents struct {
 }
 
 type UploadDocument struct {
+	Id       string `json:"document_id"`
 	Data     string `json:"data"`
-	MimeType string `json:"type"`
 	Name     string `json:"name"`
-	Status   string `json:"status"`
 	Document string `json:"document_name"`
+	MimeType string `json:"type"`
+	Status   string `json:"status"`
 }
 
 type StudentsSignIn struct {
@@ -274,6 +275,7 @@ type StudentProfile struct {
 	StudentContact
 	StudentEducation
 	StudentPrefferences
+	Documents []UploadDocument
 }
 
 type StudentContact struct {

@@ -50,9 +50,9 @@ type StudentsApp interface {
 	UpdateContact(ctx context.Context, student_id string, fieldName string, fieldValue string) error
 	UpdateEducation(ctx context.Context, student_id string, fieldName string, fieldValue string) error
 	UpdatePreferences(ctx context.Context, student_id string, fieldName string, fieldValue string) error
-	GetstudentsDocuments(ctx context.Context, student_id string) (Types.StudentDocuments, error)
+	GetstudentsDocuments(ctx context.Context, student_id string) ([]Types.UploadDocument, error)
 	UploadStudentDocuments(ctx context.Context, studentDocs Types.UploadDocument, documentBytes []byte, student_id string) error
-	GetStudentsDocument(ctx context.Context, studentId string, documentname string) (Types.Documents, error)
+	GetStudentsDocument(ctx context.Context, studentId string, document_id string) (Types.Documents, error)
 	UploadApplicationReceipt(ctx context.Context, student_id string, university_id string, program_id string, paid_amount string, receipt Types.UploadDocument) error
 	ApplyToUniversity(ctx context.Context, student_id string, university_id string, program_id string) error
 	GetApplicationsData(ctx context.Context, student_id string) ([]Types.ApplicationData, error)

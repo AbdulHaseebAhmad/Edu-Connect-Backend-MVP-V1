@@ -279,16 +279,16 @@ func UploadStudentDocuments(storage Storage.StudentsApp) http.HandlerFunc {
 
 func GetStudentsDocument(storage Storage.StudentsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		documentName := r.URL.Query().Get("docname")
+		document_id := r.URL.Query().Get("document_id")
 		studentId := r.URL.Query().Get("student_id")
 
-		if studentId == "" || documentName == "" {
+		if studentId == "" || document_id == "" {
 			slog.Error("error in requested url", "error", "missing parameters")
 			response.WriteJson(w, http.StatusBadRequest, "Missing Parameters")
 			return
 		}
 
-		document, err := storage.GetStudentsDocument(r.Context(), studentId, documentName)
+		document, err := storage.GetStudentsDocument(r.Context(), studentId, document_id)
 
 		if err != nil {
 			slog.Error("Error in DB", "error", err)
