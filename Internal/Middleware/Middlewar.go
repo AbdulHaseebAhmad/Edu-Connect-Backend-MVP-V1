@@ -22,15 +22,16 @@ func Authorizer(storage Storage.SysAdmin, next http.HandlerFunc) http.HandlerFun
 		sessionCookie := sessionToken.Value
 		slog.Info("Session Cookie Recieved", "ok:", sessionCookie)
 
-		csrfCookie, _ := r.Cookie("csrf_token")
-		if csrfCookie == "" {
-			slog.Info("CSRF Cookie Missing", "error:", csrfCookie)
+		csrfCookie, cserr := r.Cookie("csrf_token")
+
+		if cserr != nil {
+			slog.Info("CSRF Cookie Missing", "ok:", sessionToken)
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(errors.New("unauthorized Access")))
 			return
 		}
 		slog.Info("CSRF Cookie Recieved", "ok:", csrfCookie)
 
-		id, isAuthorised := storage.AuthorizeSysAdmin(r.Context(), sessionCookie, csrfCookie)
+		id, isAuthorised := storage.AuthorizeSysAdmin(r.Context(), sessionCookie, csrfCookie.Value)
 		if !isAuthorised {
 			slog.Info("sessionCokie & CSRFToken mismatch", "error:", "unauthorized Access")
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(errors.New("unauthorized Access")))
