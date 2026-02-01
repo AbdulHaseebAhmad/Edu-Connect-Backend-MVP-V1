@@ -69,8 +69,6 @@ func StudentSignin(storage Storage.StudentsApp) http.HandlerFunc {
 			Path:     "/",
 			Domain:   "localhost", // ✅ Cross-port
 
-			// SameSite: http.SameSiteNoneMode, // allow cross-origin read/write this requires secure true
-			// Path: "/schoolAdmin",
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -82,8 +80,6 @@ func StudentSignin(storage Storage.StudentsApp) http.HandlerFunc {
 			Path:     "/",
 			Domain:   "localhost", // ✅ Cross-port
 
-			// SameSite: http.SameSiteNoneMode, // Lax works without HTTPS
-			// Path:     "/schoolAdmin",          // works for all paths
 		})
 
 		response.WriteJson(w, http.StatusAccepted, studentAuth)

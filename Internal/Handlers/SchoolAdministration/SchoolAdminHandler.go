@@ -43,8 +43,6 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			HttpOnly: true,  // decides if it can be read by the browser
 			Secure:   false, // decides if it should be sent on http request or https only
 			Path:     "/",
-			// SameSite: http.SameSiteNoneMode, // allow cross-origin read/write this requires secure true
-			// Path: "/schoolAdmin",
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -54,8 +52,6 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			HttpOnly: false, // decides if it can be read by the browser
 			Secure:   false, // decides if it shouldould be sent on http req or https onlyuest
 			Path:     "/",
-			// SameSite: http.SameSiteNoneMode, // Lax works without HTTPS
-			// Path:     "/schoolAdmin",          // works for all paths
 		})
 
 		response.WriteJson(w, http.StatusAccepted, sysAdminAuth)
