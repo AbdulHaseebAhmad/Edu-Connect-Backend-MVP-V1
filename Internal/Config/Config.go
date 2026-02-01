@@ -29,7 +29,7 @@ type Configuration struct {
 func LoadConfiguration() *Configuration {
 
 	var configPath string
-	configPath = os.Getenv("../Config/localConfig.yaml") //using os package we call the Getenv method to look for environment variables in environment
+	configPath = os.Getenv("/Config/localConfig.yaml") //using os package we call the Getenv method to look for environment variables in environment
 
 	if configPath == "" {
 		flags := flag.String("config_path", "/Config/localConfig.yaml", "The path to the yaml file holding details")
