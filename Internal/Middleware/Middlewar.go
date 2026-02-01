@@ -22,7 +22,7 @@ func Authorizer(storage Storage.SysAdmin, next http.HandlerFunc) http.HandlerFun
 		sessionCookie := sessionToken.Value
 		slog.Info("Session Cookie Recieved", "ok:", sessionCookie)
 
-		csrfCookie, _ := r.Cookie("X-CSRF-Token")
+		csrfCookie, _ := r.Cookie("csrf_token")
 		if csrfCookie == "" {
 			slog.Info("CSRF Cookie Missing", "error:", csrfCookie)
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(errors.New("unauthorized Access")))
