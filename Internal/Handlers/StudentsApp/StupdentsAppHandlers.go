@@ -61,25 +61,29 @@ func StudentSignin(storage Storage.StudentsApp) http.HandlerFunc {
 		}
 
 		http.SetCookie(w, &http.Cookie{
-			Name:     "session_token",
-			Value:    sessiontoken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: true,  // decides if it can be read by the browser
-			Secure:   false, // decides if it should be sent on http request or https only
+			Name:    "session_token",
+			Value:   sessiontoken,
+			Expires: time.Now().Add(24 * time.Hour),
+			// HttpOnly: true,  // decides if it can be read by the browser
+			// Secure:   false, // decides if it should be sent on http request or https only
+			// Path:     "/",
+			HttpOnly: true,
+			Secure:   true, // must be true for cross-site HTTPS
 			Path:     "/",
-			Domain:   "localhost", // ✅ Cross-port
-
+			SameSite: http.SameSiteNoneMode, // allows cross-origin
 		})
 
 		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrftoken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: false, // decides if it can be read by the browser
-			Secure:   false, // decides if it shouldould be sent on http req or https onlyuest
+			Name:    "csrf_token",
+			Value:   csrftoken,
+			Expires: time.Now().Add(24 * time.Hour),
+			// HttpOnly: false, // decides if it can be read by the browser
+			// Secure:   false, // decides if it shouldould be sent on http req or https onlyuest
+			// Path:     "/",
+			HttpOnly: false, // JS can read CSRF token
+			Secure:   true,
 			Path:     "/",
-			Domain:   "localhost", // ✅ Cross-port
-
+			SameSite: http.SameSiteNoneMode,
 		})
 
 		response.WriteJson(w, http.StatusAccepted, studentAuth)
