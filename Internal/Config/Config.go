@@ -32,7 +32,7 @@ func LoadConfiguration() *Configuration {
 	configPath = os.Getenv("../Config/localConfig.yaml") //using os package we call the Getenv method to look for environment variables in environment
 
 	if configPath == "" {
-		flags := flag.String("config_path", "Config/localConfig.yaml", "The path to the yaml file holding details")
+		flags := flag.String("config_path", "/Config/localConfig.yaml", "The path to the yaml file holding details")
 		flag.Parse()
 		configPath = *flags
 		slog.Info("The path to the yaml holding environment variable:", "path", configPath)
