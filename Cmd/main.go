@@ -143,7 +143,8 @@ func main() {
 
 	// configure CORS options
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "http://localhost:5173/", "https://geosedutest.web.app", "https://geosedutest.web.app/"},
+		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:5173/", "https://geosedutest.web.app", "https://geosedutest.web.app/", "https://pigeos.com",
+			"https://www.pigeos.com"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,
