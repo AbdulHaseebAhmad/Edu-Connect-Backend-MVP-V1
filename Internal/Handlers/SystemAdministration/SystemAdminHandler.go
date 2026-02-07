@@ -46,7 +46,7 @@ func Login(storage Storage.SysAdmin) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode,
-			Domain:   ".pigeos.com",
+			Domain:   "www.pigeos.com",
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -57,7 +57,7 @@ func Login(storage Storage.SysAdmin) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode,
-			Domain:   ".pigeos.com",
+			Domain:   "www.pigeos.com",
 		})
 
 		response.WriteJson(w, http.StatusAccepted, sysAdminAuth)
