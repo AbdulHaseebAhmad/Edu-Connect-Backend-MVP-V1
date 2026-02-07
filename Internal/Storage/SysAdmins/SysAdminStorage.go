@@ -446,8 +446,20 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 			return "", "", fqerr
 		}
 
-		_, fiqerr := tx.ExecContext(ctx, `INSERT into students_documents (student_id,passport,passport_name,passport_status,passport_mime_type,high_school,high_school_name,high_school_status,high_school_mime_type) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
-			studentid, passport, "passport", "uploaded", passportType, transcript, "high school Diploma", "uploaded", transcriptType)
+		// _, fiqerr := tx.ExecContext(ctx, `INSERT into students_documents (student_id,passport,passport_name,passport_status,passport_mime_type,high_school,high_school_name,high_school_status,high_school_mime_type) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+		// 	studentid, passport, "passport", "uploaded", passportType, transcript, "high school Diploma", "uploaded", transcriptType)
+
+		_, fiqerr := tx.ExecContext(ctx, `
+			INSERT INTO students_documents 
+			(student_id, document, document_type, document_name, document_file_name, document_status)
+			VALUES 
+			($1,$2,$3,$4,$5,$6),
+			($1,$7,$8,$9,$10,$11)
+			`,
+			studentid,
+			passport, passportType, "passport", "passport", "uploaded",
+			transcript, transcriptType, "high school diploma", "high school diploma", "uploaded",
+		)
 
 		if fiqerr != nil {
 			tx.Rollback()
