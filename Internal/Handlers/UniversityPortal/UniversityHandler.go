@@ -42,6 +42,7 @@ func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode,
+			// Domain:   "www.pigeos.com",
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -52,6 +53,7 @@ func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode,
+			// Domain:   "www.pigeos.com",
 		})
 
 		response.WriteJson(w, http.StatusAccepted, universityAuth)

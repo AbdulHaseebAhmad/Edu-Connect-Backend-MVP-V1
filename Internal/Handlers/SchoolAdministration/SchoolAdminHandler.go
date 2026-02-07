@@ -44,6 +44,7 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			Secure:   true, // must be true for cross-site HTTPS
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode, // allows cross-origin
+			// Domain:   "www.pigeos.com",
 		})
 
 		http.SetCookie(w, &http.Cookie{
@@ -54,6 +55,7 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			Secure:   true,
 			Path:     "/",
 			SameSite: http.SameSiteNoneMode,
+			// Domain:   "www.pigeos.com",
 		})
 
 		response.WriteJson(w, http.StatusAccepted, sysAdminAuth)
