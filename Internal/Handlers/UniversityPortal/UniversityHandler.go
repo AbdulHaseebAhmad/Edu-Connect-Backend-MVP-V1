@@ -28,7 +28,7 @@ func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
 		}
-		sessiontoken, csrftoken, universityAuth, loginerr := storage.UniversityLogin(r.Context(), universityLogin)
+		sessiontoken, _, universityAuth, loginerr := storage.UniversityLogin(r.Context(), universityLogin)
 		if loginerr != nil {
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(loginerr))
 			return
@@ -45,16 +45,16 @@ func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 			// Domain:   "www.pigeos.com",
 		})
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrftoken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: false,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteNoneMode,
-			// Domain:   "www.pigeos.com",
-		})
+		// http.SetCookie(w, &http.Cookie{
+		// 	Name:     "csrf_token",
+		// 	Value:    csrftoken,
+		// 	Expires:  time.Now().Add(24 * time.Hour),
+		// 	HttpOnly: false,
+		// 	Secure:   true,
+		// 	Path:     "/",
+		// 	SameSite: http.SameSiteNoneMode,
+		// 	// Domain:   "www.pigeos.com",
+		// })
 
 		response.WriteJson(w, http.StatusAccepted, universityAuth)
 

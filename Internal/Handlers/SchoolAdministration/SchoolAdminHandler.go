@@ -30,7 +30,7 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
 		}
-		sessiontoken, csrftoken, sysAdminAuth, loginerr := storage.SchoolAdminLogin(r.Context(), schoolAdmin)
+		sessiontoken, _, sysAdminAuth, loginerr := storage.SchoolAdminLogin(r.Context(), schoolAdmin)
 		if loginerr != nil {
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(loginerr))
 			return
@@ -47,16 +47,16 @@ func Login(storage Storage.SchoolAdmin) http.HandlerFunc {
 			// Domain:   "www.pigeos.com",
 		})
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrftoken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: false,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteNoneMode,
-			// Domain:   "www.pigeos.com",
-		})
+		// http.SetCookie(w, &http.Cookie{
+		// 	Name:     "csrf_token",
+		// 	Value:    csrftoken,
+		// 	Expires:  time.Now().Add(24 * time.Hour),
+		// 	HttpOnly: false,
+		// 	Secure:   true,
+		// 	Path:     "/",
+		// 	SameSite: http.SameSiteNoneMode,
+		// 	// Domain:   "www.pigeos.com",
+		// })
 
 		response.WriteJson(w, http.StatusAccepted, sysAdminAuth)
 

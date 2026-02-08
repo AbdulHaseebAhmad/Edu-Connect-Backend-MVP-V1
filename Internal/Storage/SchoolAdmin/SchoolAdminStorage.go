@@ -62,7 +62,7 @@ func (p *SchoolAdminStore) SchoolAdminLogin(ctx context.Context, schooladmin Typ
 		return "", "", &Types.SchoolAdminAuthenticated{}, csrftokenerr
 	}
 
-	SchoolAdminAut.CsrfToken = csrfToken
+	SchoolAdminAut.CsrfToken = csrf_token
 
 	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, session_id, credential_id,role)  VALUES ($1, $2, $3, $4, $5,$6)", session_token, csrf_token, SchoolAdminAut.Email, sessionId, SchoolAdminAut.Id, SchoolAdminAut.Role)
 	if insertqerr != nil {

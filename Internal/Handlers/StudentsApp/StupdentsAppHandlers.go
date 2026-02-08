@@ -53,7 +53,7 @@ func StudentSignin(storage Storage.StudentsApp) http.HandlerFunc {
 			return
 		}
 
-		sessiontoken, csrftoken, studentAuth, loginerr := storage.StudentsLogin(r.Context(), loginDetails)
+		sessiontoken, _, studentAuth, loginerr := storage.StudentsLogin(r.Context(), loginDetails)
 		if loginerr != nil {
 			slog.Error("error in login ", "error", loginerr)
 			response.WriteJson(w, http.StatusUnauthorized, response.GeneralError(loginerr))
@@ -71,16 +71,16 @@ func StudentSignin(storage Storage.StudentsApp) http.HandlerFunc {
 			// Domain:   "www.pigeos.com",
 		})
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     "csrf_token",
-			Value:    csrftoken,
-			Expires:  time.Now().Add(24 * time.Hour),
-			HttpOnly: false,
-			Secure:   true,
-			Path:     "/",
-			SameSite: http.SameSiteNoneMode,
-			// Domain:   "www.pigeos.com",
-		})
+		// http.SetCookie(w, &http.Cookie{
+		// 	Name:     "csrf_token",
+		// 	Value:    csrftoken,
+		// 	Expires:  time.Now().Add(24 * time.Hour),
+		// 	HttpOnly: false,
+		// 	Secure:   true,
+		// 	Path:     "/",
+		// 	SameSite: http.SameSiteNoneMode,
+		// 	// Domain:   "www.pigeos.com",
+		// })
 
 		response.WriteJson(w, http.StatusAccepted, studentAuth)
 	}
