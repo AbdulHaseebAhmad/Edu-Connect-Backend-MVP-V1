@@ -60,7 +60,7 @@ func (p *UniversityStore) UniversityLogin(ctx context.Context, universityLogin T
 		slog.Info("There was a csrf token generation error", "error", stokenerr)
 		return "", "", nil, csrftokenerr
 	}
-
+	universityAuth.CsrfToken = csrf_token
 	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, session_id, credential_id,role)  VALUES ($1, $2, $3, $4, $5,$6)", session_token, csrf_token, universityAuth.Email, sessionId, universityAuth.Id, universityAuth.Role)
 	if insertqerr != nil {
 		slog.Info("There was an error inserting data to db", "error", insertqerr)

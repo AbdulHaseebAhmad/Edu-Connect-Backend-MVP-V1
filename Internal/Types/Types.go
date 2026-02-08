@@ -29,6 +29,7 @@ type SysAdminAuthenticated struct {
 	Status        bool   `json:"status" validate:"required"`
 	Email         string `json:"email" validate:"required,email"`
 	Id            string `json:"id" validate:"required"`
+	CsrfToken     string `json:"csrf_token"`
 }
 
 type StudentAuthenticated struct {
@@ -39,6 +40,7 @@ type StudentAuthenticated struct {
 	Email          string `json:"email" validate:"required,email"`
 	Id             string `json:"student_id" validate:"required"`
 	SchoolVerified string `json:"school_verified" db:"school_verified"`
+	CsrfToken      string `json:"csrf_token" validate:"required"`
 }
 
 type UniversityAuthenticated struct {
@@ -48,6 +50,7 @@ type UniversityAuthenticated struct {
 	Status        bool   `json:"status" validate:"required"`
 	Email         string `json:"email" validate:"required,email"`
 	Id            string `json:"university_id" validate:"required"`
+	CsrfToken     string `json:"csrf_token"`
 }
 type SchoolAdminAuthenticated struct {
 	Role          string `json:"role" validate:"required"`
@@ -56,6 +59,7 @@ type SchoolAdminAuthenticated struct {
 	Status        bool   `json:"status" validate:"required"`
 	Email         string `json:"email" validate:"required,email"`
 	Id            string `json:"id" validate:"required"`
+	CsrfToken     string `json:"csrf_token"`
 }
 
 type SysAdminKey string

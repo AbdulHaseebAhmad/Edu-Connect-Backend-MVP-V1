@@ -91,6 +91,7 @@ func (p *StudentsAppStore) StudentsLogin(ctx context.Context, studentLogin Types
 			return "", "", &studentAuths, sessionerr
 		}
 		csrfToken = csrf_token
+		studentAuths.CsrfToken = csrfToken
 		_, insertqerr := tx.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, session_id,role,credential_id)  VALUES ($1, $2, $3, $4, $5,$6)", session_token, csrf_token, studentAuths.Email, session_id, studentAuths.Role, studentAuths.Id)
 		if insertqerr != nil {
 			tx.Rollback()

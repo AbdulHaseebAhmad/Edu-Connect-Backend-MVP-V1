@@ -65,6 +65,8 @@ func (p *SysAdminStore) SysAdminLogin(ctx context.Context, admin Types.SysAdminL
 		return "", "", &Types.SysAdminAuthenticated{}, csrftokenerr
 	}
 
+	SysAdminAut.CsrfToken = csrf_token
+
 	_, insertqerr := p.DB.ExecContext(ctx, "INSERT INTO sessions (session_token, csrf_token, email, role,credential_id,session_id)  VALUES ($1, $2, $3, $4, $5, $6)", session_token, csrf_token, SysAdminAut.Email, SysAdminAut.Role, SysAdminAut.Id, sessionId)
 	if insertqerr != nil {
 		slog.Info("There was an error inserting data to db", "error", insertqerr)
