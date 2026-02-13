@@ -213,7 +213,39 @@ type UniversityProfile struct {
 	GraduationRate  string `json:"graduation_rate" db:"graduation_rate"`
 	Employability   string `json:"employability" db:"employability"`
 	Programs        []UniProfileProgram
+	Media           []UniMedia
+	UniContact
 }
+
+type UniContact struct {
+	UniversityAdmissionEmail string `json:"university_admission_email"`
+	UniversityEmail          string `json:"university_email"`
+	UniversityAddress        string `json:"university_address"`
+	UniversityPhone          string `json:"university_phone"`
+	UniversityWebsite        string `json:"university_website"`
+	UniversityInstagram      string `json:"university_instagram"`
+	UniversityYoutube        string `json:"university_youtube"`
+	UniversityLinkedin       string `json:"university_linkedin"`
+	UniversityX              string `json:"university_x"`
+}
+
+// type UnieMedia struct {
+// 	Media         string `json:"media"`
+// 	MediaType     string `json:"media_type"`
+// 	MediaFileName string `json:"media_file_name"`
+// 	// MediaSize     int    `json:"media_size"`
+// 	MediaTag string `json:"media_tag"`
+// }
+
+type UniMedia struct {
+	MediaId       int    `json:"media_id"`
+	Media         string `json:"media"`
+	MediaFileName string `json:"media_file_name"`
+	MediaType     string `json:"media_type"`
+	MediaSize     string `json:"media_size"`
+	MediaTag      string `json:"media_tag"`
+}
+
 type UniProfileProgram struct {
 	ProgramId       string `json:"program_id" db:"program_id"`
 	ProgramName     string `json:"program_name" db:"program_name"`

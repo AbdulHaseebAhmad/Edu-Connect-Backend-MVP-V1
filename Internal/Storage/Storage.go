@@ -67,4 +67,6 @@ type UniversityPortal interface {
 	GetProgramDetails(ctx context.Context, program_id string) (Types.Programe, error)
 	AddNewProgram(ctx context.Context, programDetails Types.Programe) error
 	UpdateProgram(ctx context.Context, programDetails Types.Programe, program_id string) error
+	GetUniversityProfile(ctx context.Context, university_id string) (Types.UniversityProfile, error)
+	UploadCampusMedia(ctx context.Context, university_id string, uploadedMidaArray []Types.UniMedia) error
 }

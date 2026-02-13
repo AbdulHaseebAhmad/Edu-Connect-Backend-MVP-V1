@@ -10,6 +10,7 @@ import (
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Types"
 	HashPassword "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Hash"
+	Helper "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Helpers"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Tokens"
 )
 
@@ -290,6 +291,150 @@ func (p UniversityStore) UpdateProgram(ctx context.Context, programDetails Types
 		programDetails.Name, programDetails.PFee, programDetails.Duration, programDetails.SessionIntake, programDetails.Description,
 		reqJSON, tagsJSON, careersJSON, programDetails.AFee, docsJSON, "active", programDetails.UniversityCode, programDetails.ProgramCapacity, programDetails.ProgramLevel, program_id)
 
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func (p UniversityStore) GetUniversityProfile(ctx context.Context, university_id string) (Types.UniversityProfile, error) {
+	var universityprofile Types.UniversityProfile
+	var media []byte
+	dberr := p.DB.QueryRowContext(ctx, `SELECT
+		up.university_id,
+		up.university_city,
+		up.students_count,
+		up.acceptance_rate,
+		up.qs_ranking,
+		up.about_university,
+		up.founded_date,
+		up.type,
+		up.calendar,
+		up.graduation_rate,
+		up.employability,
+		un.university_name,
+
+		uc.university_admission_email,
+		uc.university_email,
+		uc.university_address,
+		uc.university_phone,
+		uc.university_website,
+		uc.university_instagram,
+		uc.university_youtube,
+		uc.university_linkedin,
+		uc.university_x,
+
+		json_agg(
+        json_build_object(
+            'media_id', ul.media_id,
+            'media', ul.media,
+            'media_type', ul.media_type,
+            'media_file_name', ul.media_file_name,
+            'media_tag', ul.media_tag
+        	) 
+		) AS media
+		
+		from university_profile up
+		Left join university_life ul on up.university_id = ul.university_id 
+		Left join universities un on up.university_id = un.university_id
+		Left join university_contact uc on up.university_id = uc.university_id
+		where up.university_id = $1
+		GROUP BY 
+		up.university_id,
+		up.university_city,
+		up.students_count,
+		up.acceptance_rate,
+		up.qs_ranking,
+		up.about_university,
+		up.founded_date,
+		up.type,
+		up.calendar,
+		up.graduation_rate,
+		up.employability,
+		uc.university_admission_email,
+		uc.university_email,
+		uc.university_address,
+		uc.university_phone,
+		uc.university_website,
+		uc.university_instagram,
+		uc.university_youtube,
+		uc.university_linkedin,
+		uc.university_x,
+		un.university_name
+		`, university_id).Scan(
+		&universityprofile.UniversityId,
+		&universityprofile.UniversityCity,
+		&universityprofile.StudentsCount,
+		&universityprofile.AcceptanceRate,
+		&universityprofile.QSRanking,
+		&universityprofile.AboutUniversity,
+		&universityprofile.FoundedDate,
+		&universityprofile.Type,
+		&universityprofile.Calendar,
+		&universityprofile.GraduationRate,
+		&universityprofile.Employability,
+		&universityprofile.UniversityName,
+		&universityprofile.UniContact.UniversityAdmissionEmail,
+		&universityprofile.UniContact.UniversityEmail,
+		&universityprofile.UniContact.UniversityAddress,
+		&universityprofile.UniContact.UniversityPhone,
+		&universityprofile.UniContact.UniversityWebsite,
+		&universityprofile.UniContact.UniversityInstagram,
+		&universityprofile.UniContact.UniversityYoutube,
+		&universityprofile.UniContact.UniversityLinkedin,
+		&universityprofile.UniContact.UniversityX,
+		&media)
+	if dberr != nil {
+		return Types.UniversityProfile{}, dberr
+	}
+
+	err := json.Unmarshal(media, &universityprofile.Media)
+
+	if err != nil {
+		return Types.UniversityProfile{}, err
+
+	}
+
+	return universityprofile, nil
+}
+
+func (p UniversityStore) UploadCampusMedia(ctx context.Context, university_id string, mediaList []Types.UniMedia) error {
+
+	tx, err := p.DB.Begin()
+	if err != nil {
+		return err
+	}
+
+	stmt, err := tx.Prepare(`
+	INSERT INTO university_life 
+	(media_type, media_file_name, media_tag, media,university_id)
+		VALUES ($1,$2,$3,$4,$5)
+	`)
+
+	if err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	defer stmt.Close()
+
+	for _, media := range mediaList {
+		medias, _ := Helper.Base64ToBytes(media.Media)
+		_, err := stmt.Exec(
+			media.MediaType,
+			media.MediaFileName,
+			media.MediaTag,
+			medias,
+			university_id,
+		)
+
+		if err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	err = tx.Commit()
 	if err != nil {
 		return err
 	}

@@ -202,3 +202,57 @@ func UpdateProgram(storage Storage.UniversityPortal) http.HandlerFunc {
 		response.WriteJson(w, http.StatusCreated, "Program Updated succesfully")
 	}
 }
+
+func GetUniversityProfile(storage Storage.UniversityPortal) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		university_id := r.URL.Query().Get("university_id")
+
+		if university_id == "" {
+			slog.Error("invalid Url requested", "error", "missing params")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Requested")
+			return
+		}
+
+		profile, dberr := storage.GetUniversityProfile(r.Context(), university_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, profile)
+	}
+}
+
+func UploadCampusMedia(storage Storage.UniversityPortal) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		university_id := r.URL.Query().Get("university_id")
+		var mediaList []Types.UniMedia
+
+		if university_id == "" {
+			slog.Error("invalid Url requested", "error", "missing params")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Requested")
+			return
+		}
+
+		encerr := json.NewDecoder(r.Body).Decode(&mediaList)
+
+		if encerr != nil {
+			slog.Error("body decosing error", "error", encerr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(encerr))
+			return
+		}
+
+		dberr := storage.UploadCampusMedia(r.Context(), university_id, mediaList)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "media uploaded succesfully")
+	}
+}

@@ -72,6 +72,8 @@ func main() {
 	router.Handle("POST /api/university/app/program/add", Middlewares.Authorizer(sysAdminStore, UniversityHandler.AddNewProgram(universityStore)))
 	router.Handle("POST /api/university/app/program/update", Middlewares.Authorizer(sysAdminStore, UniversityHandler.UpdateProgram(universityStore)))
 
+	router.Handle("GET /api/university/app/profile/get", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetUniversityProfile(universityStore)))
+	router.Handle("POST /api/university/app/media/upload", Middlewares.Authorizer(sysAdminStore, UniversityHandler.UploadCampusMedia(universityStore)))
 	//---> School Admin Routes Start <----
 	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
 	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
