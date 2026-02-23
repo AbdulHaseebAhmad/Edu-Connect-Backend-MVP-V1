@@ -57,13 +57,30 @@ func (p *StudentsAppStore) StudentsLogin(ctx context.Context, studentLogin Types
 	var hashedPassword string
 	var sessionToken string
 	var csrfToken string
+	var fname string
+	var lname string
 
 	tx, txErr := p.DB.BeginTx(ctx, nil)
 	if txErr != nil {
 		return "", "", studentAuth, txErr
 	}
 
-	qerr := tx.QueryRowContext(ctx, `SELECT student_email, role, student_status, student_id, hashed_password, school_verified FROM students_credentials WHERE student_email = $1`, studentLogin.Email).Scan(&studentAuths.Email, &studentAuths.Role, &studentAuths.Status, &studentAuths.Id, &hashedPassword, &studentAuths.SchoolVerified)
+	qerr := tx.QueryRowContext(ctx, `SELECT 
+		sc.student_email, 
+		sc.role, 
+		sc.student_status, 
+		sc.student_id, 
+		sc.hashed_password, 
+		sc.school_verified,
+		
+		sa.first_name,
+		sa.last_name
+		FROM students_credentials sc 
+		
+		LEFT JOIN students_applications sa on sa.email = sc.student_email 
+		
+		WHERE student_email = $1`, studentLogin.Email).Scan(&studentAuths.Email, &studentAuths.Role, &studentAuths.Status, &studentAuths.Id, &hashedPassword, &studentAuths.SchoolVerified, &fname, &lname)
+
 	if qerr != nil {
 		tx.Rollback()
 		return "", "", &studentAuths, qerr
@@ -97,6 +114,7 @@ func (p *StudentsAppStore) StudentsLogin(ctx context.Context, studentLogin Types
 			tx.Rollback()
 			return "", "", &studentAuths, insertqerr
 		}
+		studentAuths.Name = fname + " " + lname
 	}
 	tx.Commit()
 	fmt.Println("st=", sessionToken, "ct=", csrfToken)
