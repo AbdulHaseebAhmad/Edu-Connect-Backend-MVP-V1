@@ -26,6 +26,8 @@ type SysAdmin interface {
 	RespondToReceipts(ctx context.Context, receipt_id string, status string) error
 
 	GetAllInvites(ctx context.Context) (invitesList []Types.Invite, err error)
+	GetScholarships(ctx context.Context) (scholarShips []Types.Scholarship, err error)
+	AddScholarship(ctx context.Context, scholarship Types.Scholarship) error
 }
 
 type SchoolAdmin interface {

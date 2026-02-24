@@ -115,6 +115,9 @@ func main() {
 
 	router.Handle("GET /api/sysadmin/get/receipts", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetReceipts(sysAdminStore)))
 	router.Handle("GET /api/sysadmin/update/receipt/status", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondToReceipts(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/scholarships/get", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetScholarships(sysAdminStore)))
+	router.Handle("POST /api/sysadmin/scholarships/add", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.AddScholarships(sysAdminStore)))
+
 	// router.Handle("GET /api/sysadmin/review/applications/university", Middlewares.Authorizer(sysAdminStore,SysAdminHandler.))
 
 	// ->> Protected Routes End <--

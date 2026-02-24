@@ -630,3 +630,55 @@ func (p *SysAdminStore) GetRegisteredStudents(ctx context.Context) ([]Types.Regi
 
 	return list, nil
 }
+
+func (p SysAdminStore) GetScholarships(ctx context.Context) (scholarShipss []Types.Scholarship, err error) {
+
+	var scholarships []Types.Scholarship
+
+	rows, dberr := p.DB.QueryContext(ctx, `Select title,status,scholarship_id,requirements,region,opens,link,level,funding,description,deadline,country from scholarships`)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var scholarship Types.Scholarship
+		scerr := rows.Scan(
+			&scholarship.Title, &scholarship.Status,
+			&scholarship.ScholarshipID, &scholarship.Requirements,
+			&scholarship.Region, &scholarship.Opens, &scholarship.Link,
+			&scholarship.Level, &scholarship.Funding, &scholarship.Description,
+			&scholarship.Deadline, &scholarship.Country)
+		if scerr != nil {
+			return nil, scerr
+		}
+		scholarships = append(scholarships, scholarship)
+	}
+	return scholarships, nil
+}
+
+func (p SysAdminStore) AddScholarship(ctx context.Context, scholarship Types.Scholarship) error {
+	_, dberr := p.DB.ExecContext(
+		ctx,
+		`INSERT INTO Scholarships 
+	(title, status, requirements, region, opens, link, level, funding, description, deadline, country) 
+	VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+		scholarship.Title,
+		scholarship.Status,
+		scholarship.Requirements,
+		scholarship.Region,
+		scholarship.Opens,
+		scholarship.Link,
+		scholarship.Level,
+		scholarship.Funding,
+		scholarship.Description,
+		scholarship.Deadline,
+		scholarship.Country,
+	)
+
+	if dberr != nil {
+		return dberr
+	}
+
+	return nil
+}

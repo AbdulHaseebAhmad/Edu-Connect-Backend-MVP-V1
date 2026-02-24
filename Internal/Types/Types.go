@@ -1,5 +1,7 @@
 package Types
 
+import "github.com/lib/pq"
+
 type SysAdminLogin struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required,min=6"`
@@ -423,4 +425,19 @@ type ApplicationData struct {
 type ExistsRow struct {
 	HasReceipt     bool `db:"has_receipt"`
 	HasApplication bool `db:"has_application"`
+}
+
+type Scholarship struct {
+	ScholarshipID string         `json:"scholarship_id" db:"scholarship_id"`
+	Title         string         `json:"title" db:"title"`
+	Country       string         `json:"country" db:"country"`
+	Region        string         `json:"region" db:"region"`
+	Level         string         `json:"level" db:"level"`
+	Funding       string         `json:"funding" db:"funding"`
+	Status        string         `json:"status" db:"status"`
+	Opens         string         `json:"opens" db:"opens"`
+	Deadline      string         `json:"deadline" db:"deadline"`
+	Description   string         `json:"description" db:"description"`
+	Link          string         `json:"link" db:"link"`
+	Requirements  pq.StringArray `json:"requirements" db:"requirements"`
 }

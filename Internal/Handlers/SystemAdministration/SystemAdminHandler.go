@@ -460,3 +460,41 @@ func GetRegisteredStudents(storage Storage.SysAdmin) http.HandlerFunc {
 
 	}
 }
+
+func GetScholarships(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		scholarships, dberr := storage.GetScholarships(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, scholarships)
+	}
+}
+func AddScholarships(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var scholarship Types.Scholarship
+
+		decerr := json.NewDecoder(r.Body).Decode(&scholarship)
+
+		if decerr != nil {
+			slog.Error("Decoding error", "error", decerr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(decerr))
+			return
+		}
+
+		dberr := storage.AddScholarship(r.Context(), scholarship)
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "scholarship added succesfully!")
+	}
+}
