@@ -28,6 +28,8 @@ type SysAdmin interface {
 	GetAllInvites(ctx context.Context) (invitesList []Types.Invite, err error)
 	GetScholarships(ctx context.Context) (scholarShips []Types.Scholarship, err error)
 	AddScholarship(ctx context.Context, scholarship Types.Scholarship) error
+	UpdateScholarship(ctx context.Context, scholarship Types.Scholarship, scholarshipId string) error
+	DeleteScholarship(ctx context.Context, scholarshipId string) error
 }
 
 type SchoolAdmin interface {
@@ -59,6 +61,10 @@ type StudentsApp interface {
 	ApplyToUniversity(ctx context.Context, student_id string, university_id string, program_id string) error
 	GetApplicationsData(ctx context.Context, student_id string) ([]Types.ApplicationData, error)
 	VerifyApplication(ctx context.Context, student_id string, program_id string, university_id string) (Types.ExistsRow, error)
+
+	ShortListProgram(ctx context.Context, student_id string, program_id string, university_id string) (int, error)
+	GetShortListProgram(ctx context.Context, student_id string) (shortListedPrograms []Types.ShortListProgram, err error)
+	DeleteShortListProgram(ctx context.Context, student_id string, shortListId string) error
 }
 
 type UniversityPortal interface {

@@ -117,6 +117,8 @@ func main() {
 	router.Handle("GET /api/sysadmin/update/receipt/status", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.RespondToReceipts(sysAdminStore)))
 	router.Handle("GET /api/sysadmin/scholarships/get", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetScholarships(sysAdminStore)))
 	router.Handle("POST /api/sysadmin/scholarships/add", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.AddScholarships(sysAdminStore)))
+	router.Handle("PUT /api/sysadmin/scholarships/update", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.UpdateScholarship(sysAdminStore)))
+	router.Handle("DELETE /api/sysadmin/scholarships/delete", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.DeleteScholarship(sysAdminStore)))
 
 	// router.Handle("GET /api/sysadmin/review/applications/university", Middlewares.Authorizer(sysAdminStore,SysAdminHandler.))
 
@@ -144,6 +146,11 @@ func main() {
 	router.Handle("GET /api/students/app/university/apply", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ApplyToUniversity(studentStore)))
 	router.Handle("GET /api/students/app/university/applications", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetApplicationsData(studentStore)))
 	router.Handle("GET /api/students/app/application/check", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.VerifyApplication(studentStore)))
+
+	router.Handle("GET /api/students/app/programs/shortlist/add", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ShortListProgram(studentStore)))
+	router.Handle("GET /api/students/app/programs/shortlist/list", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetShortListProgram(studentStore)))
+	router.Handle("GET /api/students/app/programs/shortlist/delete", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.DeleteShortListProgram(studentStore)))
+
 	//---->   Routes End   <-----
 
 	// configure CORS options

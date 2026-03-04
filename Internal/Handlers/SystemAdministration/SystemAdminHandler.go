@@ -498,3 +498,57 @@ func AddScholarships(storage Storage.SysAdmin) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, "scholarship added succesfully!")
 	}
 }
+
+func UpdateScholarship(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var scholarship Types.Scholarship
+		scholarshipId := r.URL.Query().Get("scholarship_id")
+
+		if scholarshipId == "" {
+			slog.Error("missing parameter", "error", "scholarship id is missing")
+			response.WriteJson(w, http.StatusInternalServerError, "invalid URL requested")
+			return
+		}
+
+		decerr := json.NewDecoder(r.Body).Decode(&scholarship)
+
+		if decerr != nil {
+			slog.Error("Decoding error", "error", decerr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(decerr))
+			return
+		}
+
+		dberr := storage.UpdateScholarship(r.Context(), scholarship, scholarshipId)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "scholarship updated succesfully!")
+	}
+}
+
+func DeleteScholarship(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		scholarshipId := r.URL.Query().Get("scholarship_id")
+
+		if scholarshipId == "" {
+			slog.Error("missing parameter", "error", "scholarship id is missing")
+			response.WriteJson(w, http.StatusInternalServerError, "invalid URL requested")
+			return
+		}
+
+		dberr := storage.DeleteScholarship(r.Context(), scholarshipId)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "scholarship deleted succesfully!")
+	}
+}

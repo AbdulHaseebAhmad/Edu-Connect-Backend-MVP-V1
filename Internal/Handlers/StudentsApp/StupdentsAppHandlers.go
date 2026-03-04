@@ -401,3 +401,72 @@ func VerifyApplication(storage Storage.StudentsApp) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, existingrows)
 	}
 }
+
+func ShortListProgram(storage Storage.StudentsApp) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		program_id := r.URL.Query().Get("program_id")
+		student_id := r.URL.Query().Get("student_id")
+		university_id := r.URL.Query().Get("university_id")
+
+		if program_id == "" || student_id == "" || university_id == "" {
+			slog.Error("invalid URL requested", "error", "missing query parameter")
+			response.WriteJson(w, http.StatusBadRequest, "invalid url requested")
+			return
+		}
+
+		id, dberr := storage.ShortListProgram(r.Context(), student_id, program_id, university_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "erorr", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, id)
+
+	}
+}
+
+func GetShortListProgram(storage Storage.StudentsApp) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id := r.URL.Query().Get("student_id")
+
+		if student_id == "" {
+			slog.Error("invalid URL requested", "error", "missing query parameter")
+			response.WriteJson(w, http.StatusBadRequest, "invalid url requested")
+			return
+		}
+
+		listOfPrograms, dberr := storage.GetShortListProgram(r.Context(), student_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "erorr", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfPrograms)
+	}
+}
+func DeleteShortListProgram(storage Storage.StudentsApp) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id := r.URL.Query().Get("student_id")
+		shortList_id := r.URL.Query().Get("shortlist_id")
+
+		if student_id == "" {
+			slog.Error("invalid URL requested", "error", "missing query parameter")
+			response.WriteJson(w, http.StatusBadRequest, "invalid url requested")
+			return
+		}
+
+		dberr := storage.DeleteShortListProgram(r.Context(), student_id, shortList_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "erorr", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "program deleted from shortlist")
+	}
+}

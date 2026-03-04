@@ -272,6 +272,7 @@ type Programe struct {
 	RequiredDocs    []string `db:"program_required_documents" json:"program_required_documents"`
 	AFee            string   `json:"program_application_fee"`
 	UniversityCode  string   `json:"university_id"`
+	UniversityName  string   `json:"university_name"`
 	ProgramLevel    string   `json:"program_level"`
 	ProgramCapacity string   `json:"program_capacity"`
 }
@@ -440,4 +441,11 @@ type Scholarship struct {
 	Description   string         `json:"description" db:"description"`
 	Link          string         `json:"link" db:"link"`
 	Requirements  pq.StringArray `json:"requirements" db:"requirements"`
+}
+
+type ShortListProgram struct {
+	ShortListId int    `json:"id"`
+	Programe    string `json:"program_id"`
+	University  string `json:"university_id"`
+	Student     string `json:"student_id"`
 }

@@ -259,11 +259,14 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
 
 func (p *StudentsAppStore) GetUniversityPrograms(ctx context.Context, program_id string) (programsList []Types.Programe, err error) {
 	rows, err := p.DB.QueryContext(ctx,
-		`SELECT program_id, program_name, program_fee, 
-            program_duration, session_intake, program_description, 
-            program_requirements, related_tags, possible_careers, 
-            program_application_fee, program_required_documents , university_id
-     FROM programs 
+		`SELECT p.program_id, p.program_name, p.program_fee, 
+            p.program_duration, p.session_intake, p.program_description, 
+            p.program_requirements, p.related_tags, p.possible_careers, 
+            p.program_application_fee, p.program_required_documents , p.university_id,
+
+			u.university_name
+     FROM programs p
+	 left join universities u on p.university_id = u.university_id
      WHERE program_id = $1`,
 		program_id)
 	if err != nil {
@@ -277,7 +280,7 @@ func (p *StudentsAppStore) GetUniversityPrograms(ctx context.Context, program_id
 		var relatedTags pgtype.JSONB
 		var possibleCareers pgtype.JSONB
 		var requiredDocuments pgtype.JSONB
-		serr := rows.Scan(&program.Id, &program.Name, &program.PFee, &program.Duration, &program.SessionIntake, &program.Description, &requirements, &relatedTags, &possibleCareers, &program.AFee, &requiredDocuments, &program.UniversityCode)
+		serr := rows.Scan(&program.Id, &program.Name, &program.PFee, &program.Duration, &program.SessionIntake, &program.Description, &requirements, &relatedTags, &possibleCareers, &program.AFee, &requiredDocuments, &program.UniversityCode, &program.UniversityName)
 		if serr != nil {
 			return []Types.Programe{}, serr
 		}
@@ -621,4 +624,45 @@ func (p StudentsAppStore) VerifyApplication(ctx context.Context, student_id stri
 		return Types.ExistsRow{}, dberr
 	}
 	return rowsExist, nil
+}
+
+func (p StudentsAppStore) ShortListProgram(ctx context.Context, student_id string, program_id string, university_id string) (int, error) {
+	var id int
+	dberr := p.DB.QueryRowContext(ctx, `INSERT into shortlisted_programs (student_id,program_id,university_id) VALUES ($1,$2,$3) returning id`, student_id, program_id, university_id).Scan(&id)
+
+	if dberr != nil {
+		return 0, dberr
+	}
+	return id, nil
+}
+
+func (p StudentsAppStore) GetShortListProgram(ctx context.Context, student_id string) (shortListedPrograms []Types.ShortListProgram, err error) {
+
+	var listOfPrograms []Types.ShortListProgram
+	rows, dberr := p.DB.QueryContext(ctx, `SELECT id,student_id,program_id,university_id from shortlisted_programs where student_id = $1`, student_id)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var Program Types.ShortListProgram
+		scanerr := rows.Scan(&Program.ShortListId, &Program.Student, &Program.Programe, &Program.University)
+
+		if scanerr != nil {
+			return nil, scanerr
+		}
+
+		listOfPrograms = append(listOfPrograms, Program)
+	}
+	return listOfPrograms, nil
+}
+
+func (p StudentsAppStore) DeleteShortListProgram(ctx context.Context, student_id string, shortListId string) error {
+	_, dberr := p.DB.ExecContext(ctx, `Delete from shortlisted_programs where student_id = $1 and id = $2`, student_id, shortListId)
+
+	if dberr != nil {
+		return dberr
+	}
+	return nil
 }

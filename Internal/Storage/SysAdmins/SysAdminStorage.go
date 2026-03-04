@@ -460,7 +460,7 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 			`,
 			studentid,
 			passport, passportType, "passport", "passport", "uploaded",
-			transcript, transcriptType, "high school diploma", "high school diploma", "uploaded",
+			transcript, transcriptType, "high_school", "high school diploma", "uploaded",
 		)
 
 		if fiqerr != nil {
@@ -678,6 +678,68 @@ func (p SysAdminStore) AddScholarship(ctx context.Context, scholarship Types.Sch
 
 	if dberr != nil {
 		return dberr
+	}
+
+	return nil
+}
+
+func (p SysAdminStore) UpdateScholarship(ctx context.Context, scholarship Types.Scholarship, scholarshipId string) error {
+	_, dberr := p.DB.ExecContext(ctx, `UPDATE Scholarships
+		SET 
+		title = $1,
+		status = $2,
+		requirements = $3,
+		region = $4,
+		opens = $5,
+		link = $6,
+		level = $7,
+		funding = $8,
+		description = $9,
+		deadline = $10,
+		country = $11
+		WHERE scholarship_id = $12`,
+		scholarship.Title,
+		scholarship.Status,
+		scholarship.Requirements,
+		scholarship.Region,
+		scholarship.Opens,
+		scholarship.Link,
+		scholarship.Level,
+		scholarship.Funding,
+		scholarship.Description,
+		scholarship.Deadline,
+		scholarship.Country,
+		scholarshipId)
+
+	if dberr != nil {
+		return dberr
+	}
+
+	return nil
+}
+
+func (p SysAdminStore) DeleteScholarship(
+	ctx context.Context,
+	scholarshipId string,
+) error {
+
+	result, err := p.DB.ExecContext(
+		ctx,
+		`DELETE FROM Scholarships WHERE scholarship_id = $1`,
+		scholarshipId,
+	)
+
+	if err != nil {
+		return err
+	}
+
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return err
+	}
+
+	if rowsAffected == 0 {
+		return errors.New("no scholarship found with given id")
 	}
 
 	return nil
