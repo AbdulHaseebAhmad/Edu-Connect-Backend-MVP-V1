@@ -744,3 +744,54 @@ func (p SysAdminStore) DeleteScholarship(
 
 	return nil
 }
+
+func (p SysAdminStore) CreateWebinar(ctx context.Context, webinar Types.Webinar) (string, error) {
+	var webinar_code string
+	dberr := p.DB.QueryRowContext(ctx, `INSERT into webinars (title,speaker,link,date,time,platform,targettype,targetvalue,status,registered) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning webinar_code`,
+		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration).Scan(&webinar_code)
+	if dberr != nil {
+		return "", dberr
+	}
+	return webinar_code, nil
+}
+
+func (p SysAdminStore) GetWebinars(ctx context.Context) (webinars []Types.Webinar, err error) {
+
+	var webinarsList []Types.Webinar
+
+	rows, dberr := p.DB.QueryContext(ctx, `Select title,speaker,link,TO_CHAR(date,'YYYY-MM-DD'),TO_CHAR(time, 'HH24:MI'),platform,targettype,targetvalue,status,registered, webinar_code from webinars`)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var webinar Types.Webinar
+		scanner := rows.Scan(&webinar.Title, &webinar.Speaker, &webinar.Link, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.TargetType, &webinar.TargetValue, &webinar.Status, &webinar.Registration, &webinar.WebinarCode)
+		if scanner != nil {
+			return nil, scanner
+		}
+		webinarsList = append(webinarsList, webinar)
+	}
+	return webinarsList, nil
+}
+
+func (p SysAdminStore) UpdateWebinar(ctx context.Context, webinarId string, webinar Types.Webinar) error {
+
+	_, dberr := p.DB.ExecContext(ctx, `UPDATE webinars SET title=$1,speaker=$2,link=$3,date =$4,time=$5,platform=$6,targettype=$7,targetvalue=$8,status=$9,registered=$10 where webinar_code = $11 returning webinar_code`,
+		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration, webinarId)
+	if dberr != nil {
+		return dberr
+	}
+	return nil
+}
+
+func (p SysAdminStore) DeleteWebinar(ctx context.Context, webinarId string) error {
+
+	_, dberr := p.DB.ExecContext(ctx, `DELETE from webinars where webinar_code = $1`, webinarId)
+
+	if dberr != nil {
+		return dberr
+	}
+	return nil
+}

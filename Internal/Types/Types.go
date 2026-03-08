@@ -449,3 +449,18 @@ type ShortListProgram struct {
 	University  string `json:"university_id"`
 	Student     string `json:"student_id"`
 }
+
+type Webinar struct {
+	ID           int64  `db:"id" json:"id"`
+	WebinarCode  string `db:"webinar_code" json:"webinar_code"`
+	Title        string `db:"title" json:"title"`
+	Speaker      string `db:"speaker" json:"speaker"`
+	Link         string `db:"link" json:"link"`
+	Date         string `db:"date" json:"date"` // stored as string in Postgres
+	Time         string `db:"time" json:"time"` // stored as string in Postgres
+	Platform     string `db:"platform" json:"platform"`
+	TargetType   string `db:"targettype" json:"targettype"`
+	TargetValue  string `db:"targetvalue" json:"targetvalue"`
+	Status       string `db:"status" json:"status"`
+	Registration int    `db:"registered" json:"registered"`
+}

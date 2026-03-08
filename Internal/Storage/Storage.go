@@ -30,6 +30,11 @@ type SysAdmin interface {
 	AddScholarship(ctx context.Context, scholarship Types.Scholarship) error
 	UpdateScholarship(ctx context.Context, scholarship Types.Scholarship, scholarshipId string) error
 	DeleteScholarship(ctx context.Context, scholarshipId string) error
+
+	CreateWebinar(ctx context.Context, webinar Types.Webinar) (string, error)
+	GetWebinars(ctx context.Context) (webinars []Types.Webinar, err error)
+	UpdateWebinar(ctx context.Context, webinarId string, webinar Types.Webinar) error
+	DeleteWebinar(ctx context.Context, webinarId string) error
 }
 
 type SchoolAdmin interface {

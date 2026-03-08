@@ -552,3 +552,98 @@ func DeleteScholarship(storage Storage.SysAdmin) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, "scholarship deleted succesfully!")
 	}
 }
+
+func CreateWebinar(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		var webinar Types.Webinar
+
+		decoderrr := json.NewDecoder(r.Body).Decode(&webinar)
+
+		if decoderrr != nil {
+			slog.Error("body error", "error", decoderrr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(decoderrr))
+			return
+
+		}
+		webinar_code, dberr := storage.CreateWebinar(r.Context(), webinar)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, webinar_code)
+
+	}
+}
+func GetWebinars(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		webinars, dberr := storage.GetWebinars(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, webinars)
+
+	}
+}
+
+func UpdateWebinar(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		webinar_id := r.URL.Query().Get("webinar_id")
+		var webinar Types.Webinar
+
+		decoderrr := json.NewDecoder(r.Body).Decode(&webinar)
+
+		if decoderrr != nil {
+			slog.Error("body error", "error", decoderrr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(decoderrr))
+			return
+
+		}
+		if webinar_id == "" {
+			slog.Error("query error", "error", "Missing Webinar Id")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL request")
+			return
+		}
+
+		dberr := storage.UpdateWebinar(r.Context(), webinar_id, webinar)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "Webinar update succesfully")
+
+	}
+}
+
+func DeleteWebinar(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		webinar_id := r.URL.Query().Get("webinar_id")
+
+		if webinar_id == "" {
+			slog.Error("query error", "error", "Missing Webinar Id")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL request")
+			return
+		}
+
+		dberr := storage.DeleteWebinar(r.Context(), webinar_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "Webinar Deleted succesfully")
+	}
+}

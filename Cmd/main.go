@@ -120,6 +120,11 @@ func main() {
 	router.Handle("PUT /api/sysadmin/scholarships/update", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.UpdateScholarship(sysAdminStore)))
 	router.Handle("DELETE /api/sysadmin/scholarships/delete", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.DeleteScholarship(sysAdminStore)))
 
+	router.Handle("POST /api/sysadmin/webinar/create", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.CreateWebinar(sysAdminStore)))
+	router.Handle("GET /api/sysadmin/webinar/get", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetWebinars(sysAdminStore)))
+	router.Handle("PUT /api/sysadmin/webinar/update", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.UpdateWebinar(sysAdminStore)))
+	router.Handle("DELETE /api/sysadmin/webinar/delete", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.DeleteWebinar(sysAdminStore)))
+
 	// router.Handle("GET /api/sysadmin/review/applications/university", Middlewares.Authorizer(sysAdminStore,SysAdminHandler.))
 
 	// ->> Protected Routes End <--
