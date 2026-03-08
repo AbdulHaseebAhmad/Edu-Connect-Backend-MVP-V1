@@ -759,7 +759,7 @@ func (p SysAdminStore) GetWebinars(ctx context.Context) (webinars []Types.Webina
 
 	var webinarsList []Types.Webinar
 
-	rows, dberr := p.DB.QueryContext(ctx, `Select title,speaker,link,TO_CHAR(date,'YYYY-MM-DD'),TO_CHAR(time, 'HH24:MI'),platform,targettype,targetvalue,status,registered, webinar_code from webinars`)
+	rows, dberr := p.DB.QueryContext(ctx, `Select title,speaker,link,TO_CHAR(date_column::date,'YYYY-MM-DD'),TO_CHAR(date_column::time, 'HH24:MI'),platform,targettype,targetvalue,status,registered, webinar_code from webinars`)
 
 	if dberr != nil {
 		return nil, dberr
