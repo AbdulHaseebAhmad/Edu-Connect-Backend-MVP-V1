@@ -747,8 +747,8 @@ func (p SysAdminStore) DeleteScholarship(
 
 func (p SysAdminStore) CreateWebinar(ctx context.Context, webinar Types.Webinar) (string, error) {
 	var webinar_code string
-	dberr := p.DB.QueryRowContext(ctx, `INSERT into webinars (title,speaker,link,date,time,platform,targettype,targetvalue,status,registered) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10) returning webinar_code`,
-		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration).Scan(&webinar_code)
+	dberr := p.DB.QueryRowContext(ctx, `INSERT into webinars (title,speaker,link,date,time,platform,targettype,targetvalue,status,registered,host,descriptive_title,description) values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13) returning webinar_code`,
+		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration, webinar.Host, webinar.Descriptive_Title, webinar.Description).Scan(&webinar_code)
 	if dberr != nil {
 		return "", dberr
 	}
@@ -759,7 +759,7 @@ func (p SysAdminStore) GetWebinars(ctx context.Context) (webinars []Types.Webina
 
 	var webinarsList []Types.Webinar
 
-	rows, dberr := p.DB.QueryContext(ctx, `Select title,speaker,link,TO_CHAR(date::date,'YYYY-MM-DD'),TO_CHAR(time::time, 'HH24:MI'),platform,targettype,targetvalue,status,registered, webinar_code from webinars`)
+	rows, dberr := p.DB.QueryContext(ctx, `Select title,speaker,link,TO_CHAR(date::date,'YYYY-MM-DD'),TO_CHAR(time::time, 'HH24:MI'),platform,targettype,targetvalue,status,registered, webinar_code,host,descriptive_title,description from webinars`)
 
 	if dberr != nil {
 		return nil, dberr
@@ -767,7 +767,7 @@ func (p SysAdminStore) GetWebinars(ctx context.Context) (webinars []Types.Webina
 
 	for rows.Next() {
 		var webinar Types.Webinar
-		scanner := rows.Scan(&webinar.Title, &webinar.Speaker, &webinar.Link, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.TargetType, &webinar.TargetValue, &webinar.Status, &webinar.Registration, &webinar.WebinarCode)
+		scanner := rows.Scan(&webinar.Title, &webinar.Speaker, &webinar.Link, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.TargetType, &webinar.TargetValue, &webinar.Status, &webinar.Registration, &webinar.WebinarCode, &webinar.Host, &webinar.Descriptive_Title, &webinar.Description)
 		if scanner != nil {
 			return nil, scanner
 		}
@@ -778,8 +778,8 @@ func (p SysAdminStore) GetWebinars(ctx context.Context) (webinars []Types.Webina
 
 func (p SysAdminStore) UpdateWebinar(ctx context.Context, webinarId string, webinar Types.Webinar) error {
 
-	_, dberr := p.DB.ExecContext(ctx, `UPDATE webinars SET title=$1,speaker=$2,link=$3,date =$4,time=$5,platform=$6,targettype=$7,targetvalue=$8,status=$9,registered=$10 where webinar_code = $11 returning webinar_code`,
-		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration, webinarId)
+	_, dberr := p.DB.ExecContext(ctx, `UPDATE webinars SET title=$1,speaker=$2,link=$3,date =$4,time=$5,platform=$6,targettype=$7,targetvalue=$8,status=$9,registered=$10,host=$11,descriptive_title=$12,description=$13 where webinar_code = $14 returning webinar_code`,
+		webinar.Title, webinar.Speaker, webinar.Link, webinar.Date, webinar.Time, webinar.Platform, webinar.TargetType, webinar.TargetValue, webinar.Status, webinar.Registration, webinar.Host, webinar.Descriptive_Title, webinar.Description, webinarId)
 	if dberr != nil {
 		return dberr
 	}
