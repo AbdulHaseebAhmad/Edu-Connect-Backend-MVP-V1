@@ -467,3 +467,18 @@ type Webinar struct {
 	Host              string `db:"hosted_by" json:"hosted_by"`
 	Description       string `db:"description" json:"description"`
 }
+
+type FeaturedUniversity struct {
+	University_Id      string `json:"university_id"`
+	University_Name    string `json:"university_name"`
+	University_Country string `json:"university_country"`
+	University_Rank    string `json:"qs_ranking"`
+	Universityy_Image  string `json:"university_image"`
+	Partner_Id         string `json:"partner_id"`
+}
+
+type FeaturedPartner struct {
+	UniversityID string `json:"university_id"`
+	Location     string `json:"location"`
+	SchoolID     string `json:"school_id"`
+}

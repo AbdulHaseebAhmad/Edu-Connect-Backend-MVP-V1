@@ -795,3 +795,75 @@ func (p SysAdminStore) DeleteWebinar(ctx context.Context, webinarId string) erro
 	}
 	return nil
 }
+
+func (p SysAdminStore) GetUniversities(ctx context.Context) (listOfUniversities []Types.FeaturedUniversity, err error) {
+	var featured_uniList []Types.FeaturedUniversity
+
+	rows, dberr := p.DB.QueryContext(ctx, `Select u.university_id,u.university_name,c.name,u.university_image, COALESCE(up.qs_ranking, '') AS qs_ranking
+ from universities u Left join university_profile up on u.university_id = up.university_id 
+ left join countries c on c.country_code = u.university_country`)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var featured_uni Types.FeaturedUniversity
+
+		scerr := rows.Scan(&featured_uni.University_Id, &featured_uni.University_Name, &featured_uni.University_Country, &featured_uni.Universityy_Image, &featured_uni.University_Rank)
+		if scerr != nil {
+			return nil, scerr
+		}
+		featured_uniList = append(featured_uniList, featured_uni)
+	}
+
+	return featured_uniList, nil
+}
+
+func (p SysAdminStore) AddFeaturedPartners(ctx context.Context, partners []Types.FeaturedPartner) (err error) {
+
+	for _, partner := range partners {
+		_, dberr := p.DB.ExecContext(ctx, `INSERT into featured_partners (university_id,location,school_id) values ($1,$2,$3) `, partner.UniversityID, partner.Location, partner.SchoolID)
+		if dberr != nil {
+			return dberr
+		}
+	}
+	return nil
+}
+func (p SysAdminStore) GetFeaturedPartners(ctx context.Context) (listOfPartners []Types.FeaturedUniversity, err error) {
+	var featured_uniList []Types.FeaturedUniversity
+
+	rows, dberr := p.DB.QueryContext(ctx,
+		`Select fp.partner_id,fp.university_id, u.university_name,c.name,
+		u.university_image, COALESCE(up.qs_ranking, '') AS qs_ranking 
+		from featured_partners fp 
+		left join  universities u on fp.university_id = u.university_id 
+		Left join university_profile up on fp.university_id = up.university_id 
+		left join countries c on c.country_code = u.university_country`)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var featured_uni Types.FeaturedUniversity
+
+		scerr := rows.Scan(&featured_uni.Partner_Id, &featured_uni.University_Id, &featured_uni.University_Name, &featured_uni.University_Country, &featured_uni.Universityy_Image, &featured_uni.University_Rank)
+		if scerr != nil {
+			return nil, scerr
+		}
+		featured_uniList = append(featured_uniList, featured_uni)
+	}
+
+	return featured_uniList, nil
+}
+
+func (p SysAdminStore) DeleteFeaturedPartner(ctx context.Context, partner_id string) error {
+	_, dberr := p.DB.ExecContext(ctx, `Delete from featured_partners where partner_id = $1`, partner_id)
+
+	if dberr != nil {
+		return dberr
+	}
+
+	return nil
+}

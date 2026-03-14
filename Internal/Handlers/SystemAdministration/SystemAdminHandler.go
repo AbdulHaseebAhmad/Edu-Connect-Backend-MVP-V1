@@ -647,3 +647,78 @@ func DeleteWebinar(storage Storage.SysAdmin) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, "Webinar Deleted succesfully")
 	}
 }
+
+func GetUniversities(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		listOfUniversities, dberr := storage.GetUniversities(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfUniversities)
+	}
+}
+
+func AddFeaturedPartners(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var partners []Types.FeaturedPartner
+		err := json.NewDecoder(r.Body).Decode(&partners)
+		if err != nil {
+			slog.Error("body error", "error", err)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(err))
+			return
+		}
+
+		dberr := storage.AddFeaturedPartners(r.Context(), partners)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "Partners Added Succesfully")
+	}
+}
+
+func GetFeaturedPartners(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		listOfUniversities, dberr := storage.GetFeaturedPartners(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, listOfUniversities)
+	}
+}
+
+func DeleteFeaturedPartner(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		partner_id := r.URL.Query().Get("partner_id")
+
+		if partner_id == "" {
+			slog.Error("query error", "error", "Missing Partner Id")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL request")
+			return
+		}
+
+		dberr := storage.DeleteFeaturedPartner(r.Context(), partner_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, "Partner. Succesfully Deleted")
+	}
+}

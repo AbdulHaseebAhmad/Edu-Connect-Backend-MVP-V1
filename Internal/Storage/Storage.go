@@ -35,6 +35,12 @@ type SysAdmin interface {
 	GetWebinars(ctx context.Context) (webinars []Types.Webinar, err error)
 	UpdateWebinar(ctx context.Context, webinarId string, webinar Types.Webinar) error
 	DeleteWebinar(ctx context.Context, webinarId string) error
+
+	GetUniversities(ctx context.Context) (listOfUniversities []Types.FeaturedUniversity, err error)
+
+	AddFeaturedPartners(ctx context.Context, partners []Types.FeaturedPartner) (err error)
+	GetFeaturedPartners(ctx context.Context) (listOfPartners []Types.FeaturedUniversity, err error)
+	DeleteFeaturedPartner(ctx context.Context, partner_id string) error
 }
 
 type SchoolAdmin interface {
