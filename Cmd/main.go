@@ -16,6 +16,7 @@ import (
 	SchoolAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SchoolAdministration"
 	StudentAppHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/StudentsApp"
 	SysAdminHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/SystemAdministration"
+	Tgl "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/TGL"
 	UniversityHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/UniversityPortal"
 	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
@@ -77,7 +78,7 @@ func main() {
 	//---> School Admin Routes Start <----
 	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
 	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
-	router.HandleFunc("POST /api/schooladmin/invite/{invitation_id}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore))
+	router.HandleFunc("POST /api/schooladmin/invite/{invitation_id}/accept", SchoolAdminHandler.SubmitInviteData(schoolAdminStore, smtp))
 
 	router.HandleFunc("GET /api/schooladmin/unprocessed/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetUnProcessedStudentsList(schoolAdminStore)))
 	router.HandleFunc("GET /api/schooladmin/verify/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.VerifyStudentAccount(schoolAdminStore)))
@@ -163,12 +164,30 @@ func main() {
 
 	//---->   Routes End   <-----
 
+	//TGL
+
+	router.Handle("GET /api/tgl/get/invoices", Tgl.GetInvoiceList())
+	router.Handle("GET /api/tgl/get/invoice", Tgl.GetInvoice())
+	router.Handle("GET /api/tgl/get/returns", Tgl.GetReturns())
+	router.Handle("GET /api/tgl/get/return", Tgl.GetReturn())
+	router.Handle("GET /api/tgl/get/asns", Tgl.GetAsns())
+	router.Handle("GET /api/tgl/get/asn", Tgl.GetAsn())
+	router.Handle("GET /api/tgl/get/external/invoice", Tgl.GetExternalInvoice())
+	router.Handle("GET /api/tgl/get/Order", Tgl.GetOrder())
+	router.Handle("GET /api/tgl/get/Product", Tgl.GetProduct())
+	router.Handle("GET /api/tgl/get/Products", Tgl.GetProducts())
+	router.Handle("GET /api/tgl/get/flows", Tgl.GetStockOutFlow())
+	router.Handle("GET /api/tgl/get/inventory", Tgl.GetStockInventory())
+	router.Handle("GET /api/tgl/get/warehouse", Tgl.GetWarehousesData())
+	router.Handle("GET /api/tgl/get/clients", Tgl.GetClients())
+
+	//TGL//
 	// configure CORS options
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{"http://localhost:5173", "http://localhost:5173/", "https://geosedutest.web.app", "https://geosedutest.web.app/", "https://pigeos.com",
+		AllowedOrigins: []string{"https://tglreports.web.app", "https://tglreports.web.app/", "http://localhost:5173", "http://localhost:5173/", "http://localhost:5174", "http://localhost:5174/", "https://geosedutest.web.app", "https://geosedutest.web.app/", "https://pigeos.com",
 			"https://www.pigeos.com"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Authorization", "Content-Type", "X-CSRF-Token", "ms-apikey"},
 		AllowCredentials: true,
 	})
 

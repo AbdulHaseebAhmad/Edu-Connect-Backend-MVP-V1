@@ -236,7 +236,7 @@ func (p *SysAdminStore) RespondToSchoolInvite(ctx context.Context, application_i
 	if status == "approved" {
 		username := schoolInformation.School + schoolInformation.Branch
 		sys_email := Emailhelper.GenerateEmails(schoolInformation.Email, "school admin")
-		schoolInformation.Sys_Eamil = schoolInformation.Email
+		schoolInformation.Sys_Eamil = sys_email
 		schoolInformation.Username = username
 
 		_, movedberr := tx.ExecContext(ctx, "INSERT INTO schools (registration_code,school_email,school_name,admin_name,school_phone,school_country,school_curriculum,school_city,school_branch,school_id,status,created_at,username,sys_email) VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)", &schoolInformation.RegistrationCode, &schoolInformation.Email, &schoolInformation.School, &schoolInformation.Admin, &schoolInformation.Phone, &schoolInformation.Country, &schoolInformation.Curriculam, &schoolInformation.City, &schoolInformation.Branch, &schoolInformation.SchoolId, status, now, username, sys_email)

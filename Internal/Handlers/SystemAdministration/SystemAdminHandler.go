@@ -280,11 +280,177 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(err))
 			return
 		}
-
 		if status == "approved" {
-			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application id Number: %s has been accepted. Here is your email & password to access account. Email: %s /n Password: %s. below is attached your school code to share with your students on sign up %s", schoolInfo.SchoolId, schoolInfo.Sys_Eamil, generatePassword, schoolInfo.Code)
+			// message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application id Number: %s has been accepted. Here is your email & password to access account. Email: %s /n Password: %s. below is attached your school code to share with your students on sign up %s", schoolInfo.SchoolId, schoolInfo.Sys_Eamil, generatePassword, schoolInfo.Code)
+			message = fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+		<meta charset="UTF-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Your School is Verified – GEOS</title></head>
+		<body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,sans-serif;">
+		<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Your school is verified on GEOS! Your portal is live and your student referral code is inside.</span>
+		<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f8;padding:40px 16px;">
+  <tr>
+  	<td align="center">
+    <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(19,28,54,0.08);">
+      <tr>
+	  	<td style="height:4px;background:linear-gradient(to right,#10b981,#059669);font-size:0;">&nbsp;
+	  	</td>
+	  </tr>
+      
+	  <tr>
+	  <td style="background:#ffffff;padding:20px 32px 18px;border-bottom:1px solid #f0f2f8;">
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>   
+		<td>
+			<table cellpadding="0" cellspacing="0" border="0">
+				<tr>
+					<td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:7px;width:26px;height:26px;text-align:center;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:12px;color:#fff;line-height:26px;display:block;">G</span></td>
+					<td style="padding-left:7px;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:16px;color:#131c36;letter-spacing:1.5px;">GEOS</span></td>
+				</tr>
+			</table>
+		  </td>
+          
+		  <td style="text-align:right;">
+		  	<span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:#f0fdf8;color:#059669;border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:0.5px;">School Verified ✓
+			</span>
+			</td>
+        </tr></table>
+      </td></tr>
+      <tr>
+	  	<td style="background:#ffffff;padding:28px 32px;">
+        <p style="margin:0 0 4px;font-size:32px;line-height:1;">🎉</p>
+        <p style="margin:8px 0 6px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Welcome to GEOS, %s!</p>
+        <h1 style="margin:0 0 14px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">Your school is verified and live.</h1>
+        <p style="margin:0 0 12px;font-size:13.5px;color:#4b5a7a;line-height:1.8;">Congratulations — <strong style="color:#131c36;">%s</strong> has been successfully verified on GEOS. Your School Portal is now active and ready to use.</p>
+        <p style="margin:0 0 18px;font-size:13.5px;color:#4b5a7a;line-height:1.8;">Below is your school's unique referral code. Share this with your students when they register — it unlocks <strong style="color:#131c36;">premium features at no extra cost</strong> and links them directly to your institution.</p>
+       
+<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;background:#f5f6fa;border:2px dashed #d0d8f0;border-radius:10px;">
+  <tr>
+    <td style="padding:20px;">
+
+      <!-- Referral Code -->
+      <p style="margin:0 0 7px;font-size:10.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;text-align:center;">
+        Your School Referral Code
+      </p>
+
+      <p style="margin:0;text-align:center;font-family:'Courier New',monospace;font-size:30px;font-weight:900;color:#131c36;letter-spacing:6px;">
+        %s
+      </p>
+
+      <p style="margin:6px 0 16px;font-size:11.5px;color:#94a3b8;text-align:center;">
+        Share this with your students when they sign up on GEOS
+      </p>
+
+      <!-- Divider -->
+      <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:16px;">
+        <tr>
+          <td style="height:1px;background:#dbe3f0;font-size:0;line-height:0;">&nbsp;</td>
+        </tr>
+      </table>
+
+      <!-- Login Details -->
+      <p style="margin:0 0 10px;font-size:10.5px;color:#94a3b8;text-transform:uppercase;letter-spacing:1px;font-weight:600;">
+        Portal Login Details
+      </p>
+
+      <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background:#ffffff;border:1px solid #e6ebf5;border-radius:8px;">
+        <tr>
+          <td style="padding:12px 14px;border-bottom:1px solid #eef2f8;">
+            <p style="margin:0 0 4px;font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">
+              Email
+            </p>
+            <p style="margin:0;font-size:13.5px;color:#131c36;font-weight:700;word-break:break-all;">
+              %s
+            </p>
+          </td>
+        </tr>
+        <tr>
+          <td style="padding:12px 14px;">
+            <p style="margin:0 0 4px;font-size:11px;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.6px;">
+              Temporary Password
+            </p>
+            <p style="margin:0;font-family:'Courier New',monospace;font-size:15px;color:#131c36;font-weight:700;letter-spacing:1px;">
+              %s
+            </p>
+          </td>
+        </tr>
+      </table>
+
+      <p style="margin:10px 0 0;font-size:11.5px;color:#94a3b8;line-height:1.6;">
+        For security, we recommend changing your password after your first login.
+      </p>
+
+    </td>
+  </tr>
+</table>
+
+		<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+			<tr>
+				<td style="background:#f0fdf8;border-left:3px solid #10b981;border-radius:0 9px 9px 0;padding:13px 15px;">
+				<p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.7;"><strong style="color:#059669;">What the code unlocks for your students</strong><br>Students who register using your code automatically receive <strong style="color:#131c36;">premium access</strong> — unlimited AI university matches, priority scholarship alerts, and dedicated GEOS advisor sessions.</p>
+				</td>
+			</tr>
+		</table>
+
+		<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr><td align="center">
+          <a href="https://geos.com/schools/portal" style="display:inline-block;background:#131c36;color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;padding:13px 40px;border-radius:9px;">Go to School Portal →</a>
+        </td></tr></table>
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
+        <!-- Portal features -->
+        <p style="margin:0 0 12px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">Your School Portal Includes</p>
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;">
+          <tr><td style="padding:9px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f0fdf8;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">👥</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Student Management</p><p style="margin:0;font-size:12px;color:#94a3b8;">View and manage all students linked to your school</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f0f7ff;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">📊</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Application Analytics</p><p style="margin:0;font-size:12px;color:#94a3b8;">Track your students' application progress in real time</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:9px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#fffbf0;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">🏆</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Scholarship Broadcasts</p><p style="margin:0;font-size:12px;color:#94a3b8;">Push relevant scholarship alerts to your entire student cohort</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:9px 0;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f8f5ff;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">📅</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Event Management</p><p style="margin:0;font-size:12px;color:#94a3b8;">Register your school and students for GEOS events and university fairs</p></td>
+          </tr></table></td></tr>
+				</table>
+				<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
+				<p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.8;">Need help getting started? Our partnerships team is here — <a href="mailto:schools@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">schools@geos.com</a></p>
+			</td></tr>
+			<tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
+				<p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">School Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Contact Partnerships</a></p>
+				<p style="margin:0;font-size:10.5px;color:#c0c8d8;">© 2026 GEOS Ltd · London, UK</p>
+			</td></tr>
+			</table>
+		</td></tr>
+		</table>
+		</body>
+		</html>
+		`,
+
+				schoolInfo.School,
+				schoolInfo.School,
+				schoolInfo.Code,
+				schoolInfo.Sys_Eamil,
+				generatePassword,
+			)
 		} else {
-			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
+			message = `
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Application Response</title>
+</head>
+<body style="font-family: Arial, sans-serif; line-height: 1.6; color: #222;">
+	<h2>Peace and Blessings be upon you</h2>
+	<p>Your application to join the system was rejected.</p>
+</body>
+</html>`
 		}
 
 		smtperr := smtp.Send(schoolInfo.Email, "Response", message)

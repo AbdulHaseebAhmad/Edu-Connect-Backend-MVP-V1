@@ -25,7 +25,8 @@ func NewSMTPSender(cfg *Configurator.Configuration) *SMTPSender {
 }
 
 func (s *SMTPSender) Send(to, subject, body string) error {
-	msg := []byte("Subject: " + subject + "\r\n" + "\r\n" + body + "\r\n")
+	msg := []byte("Subject: " + subject + "\r\n" + "MIME-Version: 1.0\r\n" +
+		"Content-Type: text/html; charset=\"UTF-8\"\r\n" + "\r\n" + body + "\r\n")
 
 	if err := smtp.SendMail(s.Addr, s.Auth, s.From, []string{to}, msg); err != nil {
 		return err
