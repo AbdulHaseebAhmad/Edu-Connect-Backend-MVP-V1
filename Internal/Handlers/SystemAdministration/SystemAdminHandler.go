@@ -170,7 +170,46 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(qerr))
 		}
 
-		message := fmt.Sprintf("Peace and Blessings be upon you. Here is your link to access greatness %s", link)
+		message := fmt.Sprintf(`<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Access Your GEOS Greatness</title></head>
+<body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,sans-serif;">
+<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Peace and Blessings! Your link to access greatness on GEOS is here.</span>
+<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f8;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(19,28,54,0.08);">
+      <tr><td style="height:4px;background:linear-gradient(to right,#10b981,#059669);font-size:0;">&nbsp;</td></tr>
+      <tr><td style="background:#ffffff;padding:20px 32px 18px;border-bottom:1px solid #f0f2f8;">
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td><table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:7px;width:26px;height:26px;text-align:center;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:12px;color:#fff;line-height:26px;display:block;">G</span></td>
+            <td style="padding-left:7px;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:16px;color:#131c36;letter-spacing:1.5px;">GEOS</span></td>
+          </tr></table></td>
+          <td style="text-align:right;"><span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:#f0fdf8;color:#059669;border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:0.5px;">Link Ready ✓</span></td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="background:#ffffff;padding:28px 32px;text-align:center;">
+        <p style="margin:0 0 8px;font-size:32px;line-height:1;">✨</p>
+        <p style="margin:8px 0 16px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Peace and Blessings</p>
+        <h1 style="margin:0 0 24px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">Here is your link to access greatness</h1>
+        
+        <!-- Main CTA Button - Full Width Focus -->
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;"><tr><td align="center">
+          <a href="%s" style="display:inline-block;background:linear-gradient(135deg,#0099e6,#5b3fcc);color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:16px;text-decoration:none;padding:20px 50px;border-radius:12px;box-shadow:0 6px 24px rgba(0,153,230,0.4);letter-spacing:0.5px;">Access Greatness →</a>
+        </td></tr></table>
+
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
+        <p style="margin:24px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a></p>
+      </td></tr>
+      <tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
+        <p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Unsubscribe</a></p>
+        <p style="margin:0;font-size:10.5px;color:#c0c8d8;">© 2026 GEOS Ltd · London, UK</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>`, link)
 		smtperr := smtp.Send(email, "Invitation", message)
 
 		if smtperr != nil {
