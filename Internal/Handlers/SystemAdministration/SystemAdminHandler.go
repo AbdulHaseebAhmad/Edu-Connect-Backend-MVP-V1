@@ -7,6 +7,7 @@ import (
 	"log/slog"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Email"
@@ -510,7 +511,7 @@ func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.H
 		}
 
 		fmt.Println(action, id)
-		email, password, err := storage.RespondApplication(r.Context(), action, id)
+		email, password, fname, err := storage.RespondApplication(r.Context(), action, id)
 
 		if err != nil {
 			slog.Error("there was an error in db operation", "error", err)
@@ -520,7 +521,82 @@ func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.H
 
 		message := ""
 		if action == "approved" {
-			message = fmt.Sprintf("Peace and Blessings be upon you. Congratulations Your application has been accepted. Here is your email & password to access account. Email: %s /n Password: %s", email, password)
+			message = fmt.Sprintf(
+				`<!DOCTYPE html>
+<html lang="en">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Welcome to GEOS</title></head>
+<body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,sans-serif;">
+<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Welcome to GEOS! Your account is live — discover universities, find scholarships and track applications.</span>
+<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f8;padding:40px 16px;">
+  <tr><td align="center">
+    <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(19,28,54,0.08);">
+      <tr><td style="height:4px;background:linear-gradient(to right,#10b981,#059669);font-size:0;">&nbsp;</td></tr>
+      <tr><td style="background:#ffffff;padding:20px 32px 18px;border-bottom:1px solid #f0f2f8;">
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td><table cellpadding="0" cellspacing="0" border="0"><tr>
+            <td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:7px;width:26px;height:26px;text-align:center;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:12px;color:#fff;line-height:26px;display:block;">G</span></td>
+            <td style="padding-left:7px;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:16px;color:#131c36;letter-spacing:1.5px;">GEOS</span></td>
+          </tr></table></td>
+          <td style="text-align:right;"><span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:#f0fdf8;color:#059669;border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:0.5px;">Account Active ✓</span></td>
+        </tr></table>
+      </td></tr>
+      <tr><td style="background:#ffffff;padding:28px 32px;">
+        <p style="margin:0 0 4px;font-size:32px;line-height:1;">🎉</p>
+        <p style="margin:8px 0 6px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Welcome, Student!</p>
+        <h1 style="margin:0 0 14px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">You're officially on GEOS.</h1>
+        <p style="margin:0 0 18px;font-size:13.5px;color:#4b5a7a;line-height:1.8;">Your account is live. GEOS is your all-in-one platform to discover universities, track applications, and find scholarships around the world — and we're thrilled to have you.</p>
+        <!-- Profile strip -->
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;background:#f8f9fc;border:1px solid #eef1f8;border-radius:9px;"><tr><td style="padding:13px 14px;">
+          <table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:42px;vertical-align:middle;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:9px;width:40px;height:40px;text-align:center;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:14px;color:#fff;line-height:40px;display:block;">%s</span></td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:middle;"><p style="margin:0;font-size:13.5px;font-weight:700;color:#131c36;">%s.</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">%s</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">%s</p></td>
+            <td style="text-align:right;vertical-align:middle;"><span style="font-size:10.5px;font-weight:700;color:#059669;background:#f0fdf8;border:1px solid #a7f3d0;padding:3px 9px;border-radius:6px;">✓ Verified</span></td>
+          </tr></table>
+        </td></tr></table>
+        <!-- Features -->
+        <p style="margin:0 0 12px;font-size:11px;font-weight:700;color:#94a3b8;letter-spacing:1.5px;text-transform:uppercase;">Here's what's waiting for you</p>
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;">
+          <tr><td style="padding:10px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f0f7ff;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">✦</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">AI University Matching</p><p style="margin:0;font-size:12px;color:#94a3b8;">Get matched to universities that fit your grades and goals — up to 94%% accuracy.</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:10px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f0fdf8;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">🏆</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Scholarship Finder</p><p style="margin:0;font-size:12px;color:#94a3b8;">Discover over £2 billion in tracked grants, bursaries, and scholarships.</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:10px 0;border-bottom:1px solid #f0f2f8;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#fffbf0;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">📋</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">Application Tracker</p><p style="margin:0;font-size:12px;color:#94a3b8;">Manage all your applications, deadlines, and documents in one place.</p></td>
+          </tr></table></td></tr>
+          <tr><td style="padding:10px 0;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
+            <td style="width:38px;vertical-align:top;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:#f8f5ff;border-radius:8px;width:34px;height:34px;text-align:center;vertical-align:middle;font-size:16px;line-height:34px;">🤖</td></tr></table></td>
+            <td style="padding-left:12px;vertical-align:top;"><p style="margin:0 0 2px;font-size:13px;font-weight:600;color:#131c36;">UniGPT 3.0 — AI Advisor</p><p style="margin:0;font-size:12px;color:#94a3b8;">Get essay feedback, interview prep, and instant university answers.</p></td>
+          </tr></table></td></tr>
+        </table>
+        <!-- Stats -->
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;border:1px solid #eef1f8;border-radius:9px;overflow:hidden;">
+          <tr>
+            <td style="text-align:center;padding:13px 8px;border-right:1px solid #eef1f8;"><p style="margin:0;font-family:Georgia,serif;font-size:20px;font-weight:900;color:#131c36;">15k+</p><p style="margin:2px 0 0;font-size:10.5px;color:#94a3b8;line-height:1.3;">Programs worldwide</p></td>
+            <td style="text-align:center;padding:13px 8px;border-right:1px solid #eef1f8;"><p style="margin:0;font-family:Georgia,serif;font-size:20px;font-weight:900;color:#131c36;">£2B+</p><p style="margin:2px 0 0;font-size:10.5px;color:#94a3b8;line-height:1.3;">In scholarships</p></td>
+            <td style="text-align:center;padding:13px 8px;"><p style="margin:0;font-family:Georgia,serif;font-size:20px;font-weight:900;color:#131c36;">80+</p><p style="margin:2px 0 0;font-size:10.5px;color:#94a3b8;line-height:1.3;">Countries covered</p></td>
+          </tr>
+        </table>
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;"><tr><td align="center">
+          <a href="https://geosedutest.web.app/student/login" style="display:inline-block;background:#131c36;color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;padding:13px 40px;border-radius:9px;">Go to My Dashboard →</a>
+        </td></tr></table>
+        <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
+        <p style="margin:16px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? We're here — <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a></p>
+      </td></tr>
+      <tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
+        <p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Unsubscribe</a></p>
+        <p style="margin:0;font-size:10.5px;color:#c0c8d8;">© 2026 GEOS Ltd · London, UK</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>
+`, strings.ToUpper(string(fname[0])), fname, email, password)
 		} else {
 			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
 

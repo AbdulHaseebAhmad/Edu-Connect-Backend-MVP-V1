@@ -383,7 +383,7 @@ func (p *SysAdminStore) GetStudentsRegistry(
 	return listOfStudents, nil
 }
 
-func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, id string) (string, string, error) {
+func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, id string) (string, string, string, error) {
 	var email string
 	var fname string
 	var lname string
@@ -396,13 +396,13 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 	tx, terr := p.DB.BeginTx(ctx, nil)
 	if terr != nil {
 		slog.Info("Db Error", "message", "there was an error in startin transaction ", "error", terr)
-		return "", "", terr
+		return "", "", "", terr
 	}
 	err := tx.QueryRowContext(ctx, "UPDATE students_applications SET status = $1 where slug = $2 returning email,first_name,last_name,citizenship,passport,transcript,passport_mime_type,transcript_mime_type,school_code", action, id).Scan(&email, &fname, &lname, &citizenship, &passport, &transcript, &passportType, &transcriptType, &school_code)
 
 	if err != nil {
 		tx.Rollback()
-		return "", "", nil
+		return "", "", "", nil
 	}
 
 	rpassword := ""
@@ -412,15 +412,15 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 	if action == "approved" {
 		password, tokenerr := Tokens.GenerateToken(8)
 		if tokenerr != nil {
-			return "", "", nil
+			return "", "", "", nil
 		}
 		hpassword, perr := HashPassword.Hashpassword(password)
 		if perr != nil {
-			return "", "", nil
+			return "", "", "", nil
 		}
 		studentid, sterr := Tokens.GenerateToken(12)
 		if sterr != nil {
-			return "", "", nil
+			return "", "", "", nil
 		}
 		studentId = studentid
 		hashedPassword = hpassword
@@ -432,20 +432,20 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 
 		if sqerr != nil {
 			tx.Rollback()
-			return "", "", sqerr
+			return "", "", "", sqerr
 		}
 		_, tqerr := tx.ExecContext(ctx, `INSERT into student_profile (student_id,first_name,last_name,nationality) values ($1,$2,$3,$4)`, studentId, fname, lname, citizenship)
 
 		if tqerr != nil {
 			tx.Rollback()
-			return "", "", tqerr
+			return "", "", "", tqerr
 		}
 
 		_, fqerr := tx.ExecContext(ctx, `INSERT into student_contact (student_id,email) values ($1,$2)`, studentId, email)
 
 		if fqerr != nil {
 			tx.Rollback()
-			return "", "", fqerr
+			return "", "", "", fqerr
 		}
 
 		// _, fiqerr := tx.ExecContext(ctx, `INSERT into students_documents (student_id,passport,passport_name,passport_status,passport_mime_type,high_school,high_school_name,high_school_status,high_school_mime_type) values ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
@@ -465,21 +465,21 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 
 		if fiqerr != nil {
 			tx.Rollback()
-			return "", "", fiqerr
+			return "", "", "", fiqerr
 		}
 		_, siqerr := tx.ExecContext(ctx, `INSERT into student_education (student_id) values ($1)`,
 			studentid)
 
 		if siqerr != nil {
 			tx.Rollback()
-			return "", "", siqerr
+			return "", "", "", siqerr
 		}
 		_, seqerr := tx.ExecContext(ctx, `INSERT into students_preferences (student_id) values ($1)`,
 			studentid)
 
 		if seqerr != nil {
 			tx.Rollback()
-			return "", "", seqerr
+			return "", "", "", seqerr
 		}
 
 	}
@@ -487,10 +487,10 @@ func (p *SysAdminStore) RespondApplication(ctx context.Context, action string, i
 	txerr := tx.Commit()
 	if txerr != nil {
 		slog.Info("Transaction Error", "message", "there was an error manipulating db ", "error", txerr)
-		return "", "", txerr
+		return "", "", "", txerr
 	}
 
-	return email, rpassword, nil
+	return email, rpassword, fname, nil
 }
 
 func (p *SysAdminStore) GetStudentsDocument(ctx context.Context, studentId string, documentname string, documentmime string) (Types.Documents, error) {

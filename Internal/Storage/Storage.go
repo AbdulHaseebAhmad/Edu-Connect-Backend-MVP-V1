@@ -19,7 +19,7 @@ type SysAdmin interface {
 	GetAnalyticsList(ctx context.Context) (lists Types.AnalyticsList, err error)
 	GetStudentsRegistry(ctx context.Context, status string) ([]Types.StudentsRegistry, error)
 	GetRegisteredStudents(ctx context.Context) ([]Types.RegisteredStudent, error)
-	RespondApplication(ctx context.Context, action string, id string) (string, string, error)
+	RespondApplication(ctx context.Context, action string, id string) (string, string, string, error)
 	GetStudentsDocument(ctx context.Context, studentId string, documentname string, documentmime string) (Types.Documents, error)
 	GetAllReceipts(ctx context.Context) ([]Types.UniversityAppReceipt, error)
 	GetReceiptDetails(ctx context.Context, student_id string) (Types.UniversityAppReceipt, error)
