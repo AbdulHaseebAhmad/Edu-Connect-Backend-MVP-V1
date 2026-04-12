@@ -162,6 +162,8 @@ func main() {
 	router.Handle("GET /api/students/app/programs/shortlist/list", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetShortListProgram(studentStore)))
 	router.Handle("GET /api/students/app/programs/shortlist/delete", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.DeleteShortListProgram(studentStore)))
 
+	router.Handle("GET /api/students/app/events/register", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.RegisterForEvent(studentStore, smtp)))
+	router.Handle("GET /api/students/app/events/registered", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.EventRegisterationCheck(studentStore, smtp)))
 	//---->   Routes End   <-----
 
 	//TGL

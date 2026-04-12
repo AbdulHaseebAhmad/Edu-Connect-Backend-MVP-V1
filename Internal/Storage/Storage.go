@@ -76,6 +76,9 @@ type StudentsApp interface {
 	ShortListProgram(ctx context.Context, student_id string, program_id string, university_id string) (int, error)
 	GetShortListProgram(ctx context.Context, student_id string) (shortListedPrograms []Types.ShortListProgram, err error)
 	DeleteShortListProgram(ctx context.Context, student_id string, shortListId string) error
+
+	RegisterForEvent(ctx context.Context, student_id string, webinar_code string) (email string, webinarData Types.Webinar, err error)
+	EventRegisterationCheck(ctx context.Context, student_id string, webinar_code string) (bool, error)
 }
 
 type UniversityPortal interface {

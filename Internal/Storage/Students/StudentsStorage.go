@@ -666,3 +666,60 @@ func (p StudentsAppStore) DeleteShortListProgram(ctx context.Context, student_id
 	}
 	return nil
 }
+
+func (p StudentsAppStore) RegisterForEvent(ctx context.Context, student_id string, webinar_code string) (email string, webinarData Types.Webinar, err error) {
+	var student_email string
+	var webinar Types.Webinar
+	tx, terr := p.DB.Begin()
+
+	if terr != nil {
+		return "", webinar, terr
+	}
+
+	dberr := tx.QueryRowContext(ctx, `Select student_email from students_credentials where student_id = $1`, student_id).Scan(&student_email)
+
+	if dberr != nil {
+		tx.Rollback()
+		return "", webinar, dberr
+	}
+
+	_, db2err := tx.ExecContext(ctx, `INSERT INTO events_registration (webinar_code, student_id) VALUES ($1, $2)`, webinar_code, student_id)
+
+	if db2err != nil {
+		tx.Rollback()
+		return "", webinar, db2err
+	}
+	_, db3err := tx.ExecContext(ctx, `UPDATE webinars SET registered = registered + 1 WHERE webinar_code = $1`, webinar_code)
+
+	if db3err != nil {
+		tx.Rollback()
+		return "", webinar, db3err
+	}
+
+	db4err := tx.QueryRowContext(ctx, `SELECT title,TO_CHAR(date, 'DD Mon YYYY') AS date,  TO_CHAR(time, 'HH12:MI AM') AS time,platform,host,link,description FROM webinars WHERE webinar_code = $1`, webinar_code).Scan(&webinar.Title, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.Host, &webinar.Link, &webinar.Description)
+
+	if db4err != nil {
+		tx.Rollback()
+		return "", webinar, db4err
+	}
+
+	tx.Commit()
+	return student_email, webinar, nil
+}
+
+func (p StudentsAppStore) EventRegisterationCheck(ctx context.Context, student_id string, webinar_code string) (bool, error) {
+	var exists bool
+
+	dberr := p.DB.QueryRowContext(ctx, `SELECT EXISTS (
+        SELECT 1
+        FROM events_registration
+        WHERE webinar_code = $1
+        AND student_id = $2
+    )`, webinar_code, student_id).Scan(&exists)
+
+	if dberr != nil {
+		return exists, dberr
+	}
+
+	return exists, nil
+}
