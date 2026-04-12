@@ -696,7 +696,7 @@ func (p StudentsAppStore) RegisterForEvent(ctx context.Context, student_id strin
 		return "", webinar, db3err
 	}
 
-	db4err := tx.QueryRowContext(ctx, `SELECT title,TO_CHAR(date, 'DD Mon YYYY') AS date,  TO_CHAR(time, 'HH12:MI AM') AS time,platform,host,link,description FROM webinars WHERE webinar_code = $1`, webinar_code).Scan(&webinar.Title, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.Host, &webinar.Link, &webinar.Description)
+	db4err := tx.QueryRowContext(ctx, `SELECT title,TO_CHAR(date::date, 'DD Mon YYYY') AS date,  TO_CHAR(time::time, 'HH12:MI AM') AS time,platform,host,link,description FROM webinars WHERE webinar_code = $1`, webinar_code).Scan(&webinar.Title, &webinar.Date, &webinar.Time, &webinar.Platform, &webinar.Host, &webinar.Link, &webinar.Description)
 
 	if db4err != nil {
 		tx.Rollback()
