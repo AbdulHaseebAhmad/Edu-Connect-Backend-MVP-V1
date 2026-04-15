@@ -1,6 +1,8 @@
 package Types
 
-import "github.com/lib/pq"
+import (
+	"github.com/lib/pq"
+)
 
 type SysAdminLogin struct {
 	Email    string `json:"email" validate:"required,email"`
@@ -481,4 +483,29 @@ type FeaturedPartner struct {
 	UniversityID string `json:"university_id"`
 	Location     string `json:"location"`
 	SchoolID     string `json:"school_id"`
+}
+
+type Commision struct {
+	ID                string  `json:"id" db:"id"`
+	ApplicationID     string  `json:"application_id" db:"application_id"`
+	UniversityID      string  `json:"university_id" db:"university_id"`
+	UniversityName    string  `json:"university_name" db:"university_name"`
+	StudentID         string  `json:"student_id" db:"student_id"`
+	StudentName       string  `json:"student_name" db:"student_name"`
+	ProgramID         string  `json:"program_id" db:"program_id"`
+	ProgramName       string  `json:"program_name" db:"program_name"`
+	ProgramLevel      string  `json:"program_level" db:"program_level"`
+	CommisionAmount   float64 `json:"commision_amount" db:"commision_amount"`
+	CommisionType     string  `json:"commision_type" db:"commision_type"`
+	ProgramFeeAmount  string  `json:"program_fee_amount" db:"program_fee_amount"`
+	Currency          string  `json:"currency" db:"currency"`
+	ApplicationStatus string  `json:"application_status" db:"application_status"`
+	DesicionStatus    string  `json:"desicion_status" db:"desicion_status"`
+	PaymentId         *string `json:"payment_id" db:"payment_id"`
+	PaymentStatus     *string `json:"payment_status" db:"payment_status"`
+	PaidAt            *string `json:"paid_at,omitempty" db:"paid_at"`
+	OfferedAt         *string `json:"created_at,omitempty" db:"created_at"`
+	ReceiptFileName   *string `json:"receipt_file_name"`
+	Receipt           *string `json:"receipt"`
+	ReceiptType       *string `json:"receipt_type"`
 }

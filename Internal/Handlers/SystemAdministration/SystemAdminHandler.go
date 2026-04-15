@@ -435,7 +435,7 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 		</table>
 
 		<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:22px;"><tr><td align="center">
-          <a href="https://geos.com/schools/portal" style="display:inline-block;background:#131c36;color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;padding:13px 40px;border-radius:9px;">Go to School Portal →</a>
+          <a href="https://geosedutest.web.app/school/login" style="display:inline-block;background:#131c36;color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;padding:13px 40px;border-radius:9px;">Go to School Portal →</a>
         </td></tr></table>
         <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
         <!-- Portal features -->
@@ -1001,5 +1001,19 @@ func DeleteFeaturedPartner(storage Storage.SysAdmin) http.HandlerFunc {
 		}
 
 		response.WriteJson(w, http.StatusOK, "Partner. Succesfully Deleted")
+	}
+}
+
+func GetUniversitiesCommissions(storage Storage.SysAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		commisions, dberr := storage.GetUniversitiesCommissions(r.Context())
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, commisions)
 	}
 }

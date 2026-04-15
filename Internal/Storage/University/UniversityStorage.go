@@ -158,6 +158,93 @@ func (p UniversityStore) GetStudntsApplications(ctx context.Context, university_
 	return studentDetailsList, nil
 }
 
+func (p UniversityStore) GetAllStudntsApplications(ctx context.Context, university_id string, status string) ([]Types.StudentProfile, error) {
+
+	var studentDetailsList []Types.StudentProfile
+
+	rows, q2err := p.DB.QueryContext(ctx, `SELECT  
+    ua.student_id,ua.university_id,ua.decision_status,TO_CHAR(ua.created_at,'Mon DD, YYYY'),ua.application_id,
+	p.program_name,p.session_intake,
+    sp.first_name, sp.last_name, sp.middle_name, sp.dob, sp.gender, sp.nationality, 
+    sp.passport_number, sp.passport_expiry, sp.marrital_status,
+    sc.email, sc.phone_number, sc.whatsapp_number, sc.permanent_address, sc.street_address,
+    sc.city, sc.state_province, sc.zip_postal_code, sc.emergency_phone, 
+    sc.emergency_contact_name, sc.emergency_relationship,
+    se.school_name, se.curriculum, se.graduation_year, se.cummulative_score,
+    se.language_type, se.language_overall_score, se.language_reading, 
+    se.language_writting, se.language_speaking, se.language_listening,
+    spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
+    spr.annual_budget, spr.scholarship_interest
+	FROM university_applications AS ua 
+	LEFT JOIN programs AS p ON ua.program_id = p.program_id 
+	LEFT JOIN student_profile AS sp ON ua.student_id = sp.student_id 
+	LEFT JOIN student_contact AS sc ON ua.student_id = sc.student_id
+	LEFT JOIN student_education AS se ON ua.student_id = se.student_id
+	LEFT JOIN students_preferences AS spr ON ua.student_id = spr.student_id
+	WHERE ua.decision_status = $1
+`, status)
+
+	if q2err != nil {
+		return nil, q2err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var studentDetails Types.StudentProfile
+		scanerr := rows.Scan(
+			&studentDetails.StudentId,
+			&studentDetails.UniversityId,
+			&studentDetails.Decision,
+			&studentDetails.Date,
+			&studentDetails.ApplicationId,
+			&studentDetails.Program,
+			&studentDetails.ProgramSession,
+			&studentDetails.StudentPersonalDetails.First_Name,
+			&studentDetails.StudentPersonalDetails.Last_Name,
+			&studentDetails.StudentPersonalDetails.Middle_Name,
+			&studentDetails.StudentPersonalDetails.Dob,
+			&studentDetails.StudentPersonalDetails.Gender,
+			&studentDetails.StudentCitizenshipDetails.Nationality,
+			&studentDetails.StudentCitizenshipDetails.Passport_Number,
+			&studentDetails.StudentCitizenshipDetails.Passport_Expiry,
+			&studentDetails.StudentPersonalDetails.Marrital_Status,
+			&studentDetails.StudentContact.Email,
+			&studentDetails.StudentContact.Phone,
+			&studentDetails.StudentContact.WhatsApp,
+			&studentDetails.StudentContact.Address,
+			&studentDetails.StudentContact.Street,
+			&studentDetails.StudentContact.City,
+			&studentDetails.StudentContact.Province,
+			&studentDetails.StudentContact.PostCode,
+			&studentDetails.StudentContact.EmergencyPhone,
+			&studentDetails.StudentContact.EmergencyName,
+			&studentDetails.StudentContact.EmergencyRelation,
+			&studentDetails.StudentEducation.SchoolName,
+			&studentDetails.StudentEducation.Curriculum,
+			&studentDetails.StudentEducation.GraduationYear,
+			&studentDetails.StudentEducation.CummulativeScore,
+			&studentDetails.StudentEducation.LanguageType,
+			&studentDetails.StudentEducation.LanguageOverallScore,
+			&studentDetails.StudentEducation.LanguageReading,
+			&studentDetails.StudentEducation.LanguageWritting,
+			&studentDetails.StudentEducation.LanguageSpeaking,
+			&studentDetails.StudentEducation.LanguageListening,
+			&studentDetails.StudentPrefferences.PrimaryInterest,
+			&studentDetails.StudentPrefferences.Degree,
+			&studentDetails.StudentPrefferences.PrefferedDate,
+			&studentDetails.StudentPrefferences.AnnualBudget,
+			&studentDetails.StudentPrefferences.Schalarship,
+		)
+
+		if scanerr != nil {
+			return nil, scanerr
+		}
+
+		studentDetailsList = append(studentDetailsList, studentDetails)
+	}
+	return studentDetailsList, nil
+}
+
 func (p UniversityStore) RespondStudntsApplications(ctx context.Context, application_id string, status string) error {
 	_, dberr := p.DB.ExecContext(ctx, `UPDATE university_applications set decision_status =$1 where application_id = $2`, status, application_id)
 

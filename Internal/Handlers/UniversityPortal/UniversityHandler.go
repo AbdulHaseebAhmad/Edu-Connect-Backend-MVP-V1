@@ -63,7 +63,7 @@ func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 
 func GetStudntsApplications(storage Storage.UniversityPortal) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-
+		// var studentDetailsList []Types.StudentProfile
 		university_id := r.URL.Query().Get("university_id")
 		status := r.URL.Query().Get("status")
 
@@ -73,6 +73,17 @@ func GetStudntsApplications(storage Storage.UniversityPortal) http.HandlerFunc {
 			return
 		}
 
+		if university_id == "all" {
+			studentdDetailList, dberr := storage.GetAllStudntsApplications(r.Context(), university_id, status)
+			if dberr != nil {
+				slog.Error("Db error", "error", dberr)
+				response.WriteJson(w, http.StatusBadRequest, dberr)
+				return
+			}
+
+			response.WriteJson(w, http.StatusOK, studentdDetailList)
+			return
+		}
 		studentdDetailList, dberr := storage.GetStudntsApplications(r.Context(), university_id, status)
 		if dberr != nil {
 			slog.Error("Db error", "error", dberr)

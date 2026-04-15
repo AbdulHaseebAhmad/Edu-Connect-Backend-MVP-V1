@@ -41,6 +41,8 @@ type SysAdmin interface {
 	AddFeaturedPartners(ctx context.Context, partners []Types.FeaturedPartner) (err error)
 	GetFeaturedPartners(ctx context.Context) (listOfPartners []Types.FeaturedUniversity, err error)
 	DeleteFeaturedPartner(ctx context.Context, partner_id string) error
+
+	GetUniversitiesCommissions(ctx context.Context) (commisions []Types.Commision, err error)
 }
 
 type SchoolAdmin interface {
@@ -91,4 +93,5 @@ type UniversityPortal interface {
 	UpdateProgram(ctx context.Context, programDetails Types.Programe, program_id string) error
 	GetUniversityProfile(ctx context.Context, university_id string) (Types.UniversityProfile, error)
 	UploadCampusMedia(ctx context.Context, university_id string, uploadedMidaArray []Types.UniMedia) error
+	GetAllStudntsApplications(ctx context.Context, university_id string, status string) ([]Types.StudentProfile, error)
 }

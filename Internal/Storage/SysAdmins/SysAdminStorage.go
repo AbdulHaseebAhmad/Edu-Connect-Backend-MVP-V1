@@ -867,3 +867,61 @@ func (p SysAdminStore) DeleteFeaturedPartner(ctx context.Context, partner_id str
 
 	return nil
 }
+
+func (p SysAdminStore) GetUniversitiesCommissions(ctx context.Context) (commisions []Types.Commision, err error) {
+	var commissionsList []Types.Commision
+
+	rows, dberr := p.DB.QueryContext(ctx, `
+	Select 
+	ua.id,
+	ua.application_id,
+	ua.university_id,
+	un.university_name,
+	ua.student_id,
+	sp.first_name AS student_name,
+	ua.program_id,
+	pg.program_name,
+	pg.program_level,
+	pg.program_fee,
+	un.commision_value,
+	un.commision_type,
+	un.currency,
+	ua.application_status,
+	ua.decision_status,
+	uc.payment_id,
+	uc.status,
+	uc.receipt_file_name,
+	uc.receipt,
+	uc.receipt_type,
+	uc.created_at,
+	uc.paid_at
+	from university_applications ua
+	LEFT Join student_profile sp on ua.student_id = sp.student_id
+	LEFT Join programs pg on pg.program_id = ua.program_id
+	LEFT Join universities un on ua.university_id = un.university_id
+	LEFT Join university_commissions uc on ua.application_id = uc.application_id
+	where ua.application_status = $1
+	`, "enrolled")
+
+	if dberr != nil {
+		return []Types.Commision{}, dberr
+	}
+
+	for rows.Next() {
+		var commission Types.Commision
+
+		scerr := rows.Scan(&commission.ID, &commission.ApplicationID, &commission.UniversityID, &commission.UniversityName, &commission.StudentID, &commission.StudentName,
+			&commission.ProgramID, &commission.ProgramName, &commission.ProgramLevel, &commission.ProgramFeeAmount, &commission.CommisionAmount, &commission.CommisionType, &commission.Currency,
+			&commission.ApplicationStatus, &commission.DesicionStatus, &commission.PaymentId, &commission.PaymentStatus, &commission.ReceiptFileName, &commission.Receipt,
+			&commission.ReceiptType, &commission.OfferedAt, &commission.PaidAt)
+
+		if scerr != nil {
+			return []Types.Commision{}, scerr
+		}
+
+		commissionsList = append(commissionsList, commission)
+	}
+
+	return commissionsList, nil
+
+}

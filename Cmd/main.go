@@ -131,6 +131,7 @@ func main() {
 	router.Handle("GET /api/sysadmin/featured-partners/get", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetFeaturedPartners(sysAdminStore)))
 	router.Handle("DELETE /api/sysadmin/featured-partners/delete", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.DeleteFeaturedPartner(sysAdminStore)))
 
+	router.Handle("GET /api/sysadmin/universities/commisions/get", Middlewares.Authorizer(sysAdminStore, SysAdminHandler.GetUniversitiesCommissions(sysAdminStore)))
 	// router.Handle("GET /api/sysadmin/review/applications/university", Middlewares.Authorizer(sysAdminStore,SysAdminHandler.))
 
 	// ->> Protected Routes End <--
