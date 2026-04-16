@@ -596,3 +596,221 @@ func EventRegisterationCheck(storage Storage.StudentsApp, smtp Email.EmailSender
 	}
 
 }
+
+func SetScholarshipReminder(storage Storage.StudentsApp, smtp Email.EmailSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id := r.URL.Query().Get("student_id")
+		scholarship_id := r.URL.Query().Get("scholarship_id")
+		var message string
+
+		if student_id == "" || scholarship_id == "" {
+			slog.Error("invalid URL requested", "error", "missing query parameter")
+			response.WriteJson(w, http.StatusBadRequest, "invalid url requested")
+			return
+		}
+
+		student_email, scholarship_name, opens_date, dberr := storage.SetScholarshipReminder(r.Context(), student_id, scholarship_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "erorr", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		message = fmt.Sprintf(`
+		<!DOCTYPE html>
+		<html lang="en">
+		<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Scholarship Reminder Set – GEOS</title>
+		</head>
+		<body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,sans-serif;">
+		<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">
+			Your scholarship reminder has been set. You’ll receive an email notification when it opens.
+		</span>
+
+		<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f8;padding:40px 16px;">
+			<tr>
+			<td align="center">
+				<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(19,28,54,0.08);">
+				<tr>
+					<td style="height:4px;background:linear-gradient(to right,#10b981,#059669);font-size:0;">&nbsp;</td>
+				</tr>
+
+				<tr>
+					<td style="background:#ffffff;padding:20px 32px 18px;border-bottom:1px solid #f0f2f8;">
+					<table width="100%%" cellpadding="0" cellspacing="0" border="0">
+						<tr>
+						<td>
+							<table cellpadding="0" cellspacing="0" border="0">
+							<tr>
+								<td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:7px;width:26px;height:26px;text-align:center;vertical-align:middle;">
+								<span style="font-family:Georgia,serif;font-weight:900;font-size:12px;color:#fff;line-height:26px;display:block;">G</span>
+								</td>
+								<td style="padding-left:7px;vertical-align:middle;">
+								<span style="font-family:Georgia,serif;font-weight:900;font-size:16px;color:#131c36;letter-spacing:1.5px;">GEOS</span>
+								</td>
+							</tr>
+							</table>
+						</td>
+						<td style="text-align:right;">
+							<span style="font-size:10px;font-weight:700;padding:4px 10px;border-radius:20px;background:#f0fdf8;color:#059669;border:1px solid #a7f3d0;text-transform:uppercase;letter-spacing:0.5px;">
+							Reminder Set ✓
+							</span>
+						</td>
+						</tr>
+					</table>
+					</td>
+				</tr>
+
+				<tr>
+					<td style="background:#ffffff;padding:28px 32px;">
+					<p style="margin:0 0 4px;font-size:32px;line-height:1;">🔔</p>
+					<p style="margin:8px 0 6px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">
+						Scholarship alert
+					</p>
+					<h1 style="margin:0 0 14px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">
+						Your reminder has been set
+					</h1>
+					<p style="margin:0 0 18px;font-size:13.5px;color:#4b5a7a;line-height:1.8;">
+						We’ve saved your scholarship reminder. When the scholarship opens, you’ll receive an email notification right away.
+					</p>
+
+					<!-- Reminder details card -->
+					<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;border:1px solid #eef1f8;border-radius:9px;overflow:hidden;">
+						<tr>
+						<td style="background:#131c36;padding:10px 14px;">
+							<span style="color:#ffffff;font-size:12.5px;font-weight:600;">📌 Reminder Details</span>
+						</td>
+						</tr>
+						<tr>
+						<td style="padding:14px 16px;">
+							<table width="100%%" cellpadding="0" cellspacing="0" border="0">
+							<tr>
+								<td style="padding:5px 0;border-bottom:1px solid #f0f2f8;">
+								<table cellpadding="0" cellspacing="0" border="0" width="100%%">
+									<tr>
+									<td style="width:88px;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding-top:1px;">Scholarship</td>
+									<td style="font-size:13px;color:#131c36;font-weight:600;">%s</td>
+									</tr>
+								</table>
+								</td>
+							</tr>
+							<tr>
+								<td style="padding:5px 0;border-bottom:1px solid #f0f2f8;">
+								<table cellpadding="0" cellspacing="0" border="0" width="100%%">
+									<tr>
+									<td style="width:88px;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding-top:1px;">Opens On</td>
+									<td style="font-size:13px;color:#131c36;font-weight:500;">%s</td>
+									</tr>
+								</table>
+								</td>
+							</tr>
+							<tr>
+								<td style="padding:5px 0;border-bottom:1px solid #f0f2f8;">
+								<table cellpadding="0" cellspacing="0" border="0" width="100%%">
+									<tr>
+									<td style="width:88px;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding-top:1px;">Reminder</td>
+									<td style="font-size:13px;color:#131c36;font-weight:500;">Email notification enabled</td>
+									</tr>
+								</table>
+								</td>
+							</tr>
+							<tr>
+								<td style="padding:5px 0;">
+								<table cellpadding="0" cellspacing="0" border="0" width="100%%">
+									<tr>
+									<td style="width:88px;font-size:10px;color:#94a3b8;text-transform:uppercase;letter-spacing:0.5px;padding-top:1px;">Status</td>
+									<td style="font-size:13px;color:#131c36;font-weight:500;">Ready</td>
+									</tr>
+								</table>
+								</td>
+							</tr>
+							</table>
+						</td>
+						</tr>
+					</table>
+
+					<!-- Highlight box -->
+					<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:18px;background:#f0fdf8;border-left:3px solid #059669;border-radius:0 9px 9px 0;">
+						<tr>
+						<td style="padding:14px 16px;">
+							<p style="margin:0;font-size:12.5px;color:#4b5a7a;line-height:1.7;">
+							✅ <strong style="color:#131c36;">Youre all set.</strong> We ll send you an email as soon as this scholarship opens so you can apply without missing the deadline.
+							</p>
+						</td>
+						</tr>
+					</table>
+
+				
+
+					<table width="100%%" cellpadding="0" cellspacing="0" border="0">
+						<tr>
+						<td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td>
+						</tr>
+					</table>
+
+					<p style="margin:16px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">
+						Questions? We re here — <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a>
+					</p>
+					</td>
+				</tr>
+
+				<tr>
+					<td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
+					<p style="margin:0 0 7px;">
+						<a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a>
+						<a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Help Centre</a>
+						<a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Manage Reminders</a>
+					</p>
+					<p style="margin:0;font-size:10.5px;color:#c0c8d8;">© 2026 GEOS Ltd · London, UK</p>
+					</td>
+				</tr>
+				</table>
+			</td>
+			</tr>
+		</table>
+		</body>
+		</html>
+		`,
+			scholarship_name,
+			opens_date,
+		)
+
+		smtperr := smtp.Send(student_email, "Response", message)
+
+		if smtperr != nil {
+			slog.Info("SMTP error", "message", smtperr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(smtperr))
+			return
+		}
+		response.WriteJson(w, http.StatusOK, "Student Reminder Set For Scholarship Succesfully")
+
+	}
+}
+
+func ScholarshipReminderCheck(storage Storage.StudentsApp, smtp Email.EmailSender) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		student_id := r.URL.Query().Get("student_id")
+		scholarship_id := r.URL.Query().Get("scholarship_id")
+
+		if student_id == "" || scholarship_id == "" {
+			slog.Error("invalid URL requested", "error", "missing query parameter")
+			response.WriteJson(w, http.StatusBadRequest, "invalid url requested")
+			return
+		}
+
+		registered, dberr := storage.ScholarshipReminderCheck(r.Context(), student_id, scholarship_id)
+
+		if dberr != nil {
+			slog.Error("Db error", "erorr", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, registered)
+
+	}
+
+}

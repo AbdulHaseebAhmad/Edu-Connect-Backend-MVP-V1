@@ -81,6 +81,9 @@ type StudentsApp interface {
 
 	RegisterForEvent(ctx context.Context, student_id string, webinar_code string) (email string, webinarData Types.Webinar, err error)
 	EventRegisterationCheck(ctx context.Context, student_id string, webinar_code string) (bool, error)
+
+	SetScholarshipReminder(ctx context.Context, student_id string, scholarship_id string) (email string, scholarshipTitle string, OpensDate string, err error)
+	ScholarshipReminderCheck(ctx context.Context, student_id string, scholarship_id string) (bool, error)
 }
 
 type UniversityPortal interface {

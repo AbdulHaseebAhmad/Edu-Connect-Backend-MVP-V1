@@ -165,6 +165,10 @@ func main() {
 
 	router.Handle("GET /api/students/app/events/register", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.RegisterForEvent(studentStore, smtp)))
 	router.Handle("GET /api/students/app/events/registered", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.EventRegisterationCheck(studentStore, smtp)))
+
+	router.Handle("GET /api/students/app/scholarship/reminder", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.SetScholarshipReminder(studentStore, smtp)))
+	router.Handle("GET /api/students/app/scholarship/reminder/set", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ScholarshipReminderCheck(studentStore, smtp)))
+
 	//---->   Routes End   <-----
 
 	//TGL

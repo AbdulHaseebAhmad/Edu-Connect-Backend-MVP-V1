@@ -723,3 +723,54 @@ func (p StudentsAppStore) EventRegisterationCheck(ctx context.Context, student_i
 
 	return exists, nil
 }
+
+func (p StudentsAppStore) SetScholarshipReminder(ctx context.Context, student_id string, scholarship_id string) (email string, scholarshipTitle string, OpensDate string, err error) {
+	var student_email string
+	tx, terr := p.DB.Begin()
+	var schlarship_title string
+	var scholarship_date string
+	if terr != nil {
+		return "", "", "", terr
+	}
+
+	dberr := tx.QueryRowContext(ctx, `Select student_email from students_credentials where student_id = $1`, student_id).Scan(&student_email)
+
+	if dberr != nil {
+		tx.Rollback()
+		return "", "", "", dberr
+	}
+
+	_, db2err := tx.ExecContext(ctx, `INSERT INTO scholarship_reminder (scholarship_id, student_id) VALUES ($1, $2)`, scholarship_id, student_id)
+
+	if db2err != nil {
+		tx.Rollback()
+		return "", "", "", db2err
+	}
+
+	db3err := tx.QueryRowContext(ctx, `SELECT title,TO_CHAR(opens::date, 'DD Mon YYYY') AS date FROM scholarships WHERE scholarship_id = $1`, scholarship_id).Scan(&schlarship_title, &scholarship_date)
+
+	if db3err != nil {
+		tx.Rollback()
+		return "", "", "", db3err
+	}
+
+	tx.Commit()
+	return student_email, schlarship_title, scholarship_date, nil
+}
+
+func (p StudentsAppStore) ScholarshipReminderCheck(ctx context.Context, student_id string, scholarship_id string) (bool, error) {
+	var exists bool
+
+	dberr := p.DB.QueryRowContext(ctx, `SELECT EXISTS (
+        SELECT 1
+        FROM scholarship_reminder
+        WHERE scholarship_id = $1
+        AND student_id = $2
+    )`, scholarship_id, student_id).Scan(&exists)
+
+	if dberr != nil {
+		return exists, dberr
+	}
+
+	return exists, nil
+}
