@@ -12,6 +12,28 @@ import (
 	response "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Utils/Responses"
 )
 
+func AddUniversity(storage Storage.UniversityPortal) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var University Types.University
+
+		merr := json.NewDecoder(r.Body).Decode(&University)
+
+		if merr != nil {
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(merr))
+			return
+		}
+		fmt.Println(University)
+		credentials, dberr := storage.AddNewUniversity(r.Context(), University)
+
+		if dberr != nil {
+			slog.Error("Db error", "error", dberr)
+			response.WriteJson(w, http.StatusBadRequest, dberr)
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, credentials)
+	}
+}
 func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		slog.Info("Request to Login University")

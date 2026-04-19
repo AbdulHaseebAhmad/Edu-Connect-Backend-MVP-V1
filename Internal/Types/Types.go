@@ -192,15 +192,35 @@ type Countries struct {
 }
 
 type University struct {
-	Id string `json:"university_id"`
-	// Code    string `json:"university_code"`
-	Name        string `json:"university_name"`
-	City        string `json:"university_city"`
-	Country     string `json:"university_country"`
-	CountryName string `json:"country_code"`
-	Acronym     string `json:"university_acronym"`
-	Image       string `json:"university_image"`
-	Phone       string `json:"university_phone"`
+	Id              string `json:"university_id"`
+	Name            string `json:"university_name"`
+	City            string `json:"university_city"`
+	Country         string `json:"university_country"`
+	CountryName     string `json:"country_code"`
+	Acronym         string `json:"university_acronym"`
+	Phone           string `json:"university_phone"`
+	Image           string `json:"university_image"`
+	Appfee          string `json:"app_fee"`
+	Currency        string `json:"currency"`
+	CommisionType   string `json:"commision_type"`
+	CommisionValue  string `json:"commision_value"`
+	Email           string `json:"university_email"`
+	AddmissionEmail string `json:"university_admission_email"`
+	UniAddress      string `json:"university_address"`
+	UniWebsite      string `json:"university_website"`
+	UniInstagram    string `json:"university_instagram"`
+	UniYutube       string `json:"university_youtube"`
+	UniLinkedIn     string `json:"univerity_linkedin"`
+	UniX            string `json:"university_x"`
+	StudentCount    string `json:"students_count"`
+	AcceptanceRate  string `json:"acceptance_rate"`
+	QsRanking       string `json:"qs_ranking"`
+	About           string `json:"about_university"`
+	Founded         string `json:"founded_date"`
+	Type            string `json:"Founded"`
+	Intake          string `json:"calendar"`
+	GradRate        string `json:"graduation_rate"`
+	Employability   string `json:"employability"`
 }
 
 type UniversityProfile struct {
@@ -498,14 +518,14 @@ type Commision struct {
 	CommisionAmount   float64 `json:"commision_amount" db:"commision_amount"`
 	CommisionType     string  `json:"commision_type" db:"commision_type"`
 	ProgramFeeAmount  string  `json:"program_fee_amount" db:"program_fee_amount"`
-	Currency          string  `json:"currency" db:"currency"`
 	ApplicationStatus string  `json:"application_status" db:"application_status"`
 	DesicionStatus    string  `json:"desicion_status" db:"desicion_status"`
 	PaymentId         *string `json:"payment_id" db:"payment_id"`
 	PaymentStatus     *string `json:"payment_status" db:"payment_status"`
 	PaidAt            *string `json:"paid_at,omitempty" db:"paid_at"`
-	OfferedAt         *string `json:"created_at,omitempty" db:"created_at"`
 	ReceiptFileName   *string `json:"receipt_file_name"`
+	OfferedAt         *string `json:"created_at,omitempty" db:"created_at"`
+	Currency          string  `json:"currency" db:"currency"`
 	Receipt           *string `json:"receipt"`
 	ReceiptType       *string `json:"receipt_type"`
 }

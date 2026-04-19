@@ -64,6 +64,7 @@ func main() {
 
 	//University Routes
 
+	router.HandleFunc("POST /api/university/add/university", Middlewares.Authorizer(sysAdminStore, UniversityHandler.AddUniversity(universityStore)))
 	router.HandleFunc("POST /api/university/login", UniversityHandler.Login(universityStore))
 
 	router.Handle("GET /api/university/app/applications", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetStudntsApplications(universityStore)))
@@ -75,6 +76,7 @@ func main() {
 
 	router.Handle("GET /api/university/app/profile/get", Middlewares.Authorizer(sysAdminStore, UniversityHandler.GetUniversityProfile(universityStore)))
 	router.Handle("POST /api/university/app/media/upload", Middlewares.Authorizer(sysAdminStore, UniversityHandler.UploadCampusMedia(universityStore)))
+
 	//---> School Admin Routes Start <----
 	router.HandleFunc("POST /api/schooladmin/login", SchoolAdminHandler.Login(schoolAdminStore))
 	router.HandleFunc("GET /api/schooladmin/invite/validate", SchoolAdminHandler.LinkValidation(schoolAdminStore))
@@ -84,6 +86,7 @@ func main() {
 	router.HandleFunc("GET /api/schooladmin/verify/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.VerifyStudentAccount(schoolAdminStore)))
 	router.HandleFunc("GET /api/schooladmin/processed/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetProcessedStudentsList(schoolAdminStore)))
 	router.HandleFunc("GET /api/schooladmin/profile", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetSchoolProfileData(schoolAdminStore)))
+
 	//----> School Admin Routes Ennd <----
 
 	//->> Sys Admin Auth Routes Start

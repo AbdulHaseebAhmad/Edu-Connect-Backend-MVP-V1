@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"log/slog"
 
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
@@ -20,6 +19,153 @@ type UniversityStore struct {
 
 func NewUniversityStore(pg *Postgress.Postgress) *UniversityStore {
 	return &UniversityStore{pg}
+}
+
+func (p *UniversityStore) AddNewUniversity(ctx context.Context, University Types.University) (Types.UniversityLogin, error) {
+	var LoginDetails Types.UniversityLogin
+	var university_id string
+
+	UniversityPassword, err := Tokens.GenerateToken(5)
+	if err != nil {
+		return LoginDetails, err
+	}
+
+	hashedPassword, err := HashPassword.Hashpassword("testing02")
+	if err != nil {
+		return LoginDetails, err
+	}
+
+	tx, err := p.DB.BeginTx(ctx, nil)
+	if err != nil {
+		return LoginDetails, err
+	}
+
+	err = tx.QueryRowContext(ctx, `
+	INSERT INTO Universities (
+		university_name,
+		university_city,
+		university_country,
+		university_acronym,
+		university_phone,
+		university_image,
+		app_fee,
+		currency,
+		commision_type,
+		commision_value
+	) VALUES (
+		$1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+	) RETURNING university_id`,
+		University.Name,
+		University.City,
+		University.Country,
+		University.Acronym,
+		University.Phone,
+		University.Image,
+		University.Appfee,
+		University.Currency,
+		University.CommisionType,
+		University.CommisionValue,
+	).Scan(&university_id)
+
+	if err != nil {
+		tx.Rollback()
+		return LoginDetails, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	INSERT INTO university_credentials (
+		university_id,
+		university_email,
+		hashed_password,
+		role,
+		status
+	) VALUES ($1,$2,$3,$4,$5)`,
+		university_id,
+		University.Email,
+		hashedPassword,
+		"university",
+		true,
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return LoginDetails, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	INSERT INTO university_contact (
+		university_id,
+		university_admission_email,
+		university_email,
+		university_address,
+		university_phone,
+		university_website,
+		university_instagram,
+		university_youtube,
+		university_linkedin,
+		university_x
+	) VALUES (
+		$1,$2,$3,$4,$5,$6,$7,$8,$9,$10
+	)`,
+		university_id,
+		University.AddmissionEmail,
+		University.Email,
+		University.UniAddress,
+		University.Phone,
+		University.UniWebsite,
+		University.UniInstagram,
+		University.UniYutube,
+		University.UniLinkedIn,
+		University.UniX,
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return LoginDetails, err
+	}
+
+	_, err = tx.ExecContext(ctx, `
+	INSERT INTO university_profile (
+		university_id,
+		university_city,
+		students_count,
+		acceptance_rate,
+		qs_ranking,
+		about_university,
+		founded_date,
+		type,
+		calendar,
+		graduation_rate,
+		employability
+	) VALUES (
+		$1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11
+	)`,
+		university_id,
+		University.City,
+		University.StudentCount,
+		University.AcceptanceRate,
+		University.QsRanking,
+		University.About,
+		University.Founded,
+		University.Type,
+		University.Intake,
+		University.GradRate,
+		University.Employability,
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return LoginDetails, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return LoginDetails, err
+	}
+
+	LoginDetails.Email = University.Email
+	LoginDetails.Password = UniversityPassword
+
+	return LoginDetails, nil
 }
 
 func (p *UniversityStore) UniversityLogin(ctx context.Context, universityLogin Types.UniversityLogin) (sessionToken string, csrfToken string, universityAuthe *Types.UniversityAuthenticated, err error) {
@@ -314,8 +460,8 @@ func (p UniversityStore) GetProgramDetails(ctx context.Context, program_id strin
 
 func (p UniversityStore) AddNewProgram(ctx context.Context, programDetails Types.Programe) error {
 
-	program_id_token, _ := Tokens.GenerateToken(5)
-	program_id := fmt.Sprintf("%s%s%s", programDetails.UniversityCode, programDetails.ProgramLevel, program_id_token)
+	// program_id_token, _ := Tokens.GenerateToken(5)
+	// program_id := fmt.Sprintf("%s%s%s", programDetails.UniversityCode, programDetails.ProgramLevel, program_id_token)
 
 	reqJSON, _ := json.Marshal(programDetails.Requirements)
 	tagsJSON, _ := json.Marshal(programDetails.RelatedTags)
@@ -335,15 +481,14 @@ func (p UniversityStore) AddNewProgram(ctx context.Context, programDetails Types
 		possible_careers,
 		program_application_fee,
 		program_required_documents,
-		program_id,
 		program_status,
 		university_id,
 		program_capacity,
 		program_level)
-		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+		values ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14)`,
 		programDetails.Name, programDetails.PFee, programDetails.Duration, programDetails.SessionIntake, programDetails.Description,
 		reqJSON, tagsJSON, careersJSON, programDetails.AFee, docsJSON,
-		program_id, "active", programDetails.UniversityCode, programDetails.ProgramCapacity, programDetails.ProgramLevel)
+		"active", programDetails.UniversityCode, programDetails.ProgramCapacity, programDetails.ProgramLevel)
 
 	if err != nil {
 		return err

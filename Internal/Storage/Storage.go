@@ -97,4 +97,6 @@ type UniversityPortal interface {
 	GetUniversityProfile(ctx context.Context, university_id string) (Types.UniversityProfile, error)
 	UploadCampusMedia(ctx context.Context, university_id string, uploadedMidaArray []Types.UniMedia) error
 	GetAllStudntsApplications(ctx context.Context, university_id string, status string) ([]Types.StudentProfile, error)
+
+	AddNewUniversity(ctx context.Context, University Types.University) (Types.UniversityLogin, error)
 }
