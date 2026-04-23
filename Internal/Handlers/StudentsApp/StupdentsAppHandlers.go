@@ -814,3 +814,26 @@ func ScholarshipReminderCheck(storage Storage.StudentsApp, smtp Email.EmailSende
 	}
 
 }
+
+func GetFreeApplicationCount(storage Storage.StudentsApp) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+
+		student_id := r.URL.Query().Get("student_id")
+
+		if student_id == "" {
+			slog.Error("invalid url", "error", "Invalid URL")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Requested")
+			return
+		}
+
+		freeApplicationCoiunt, dberr := storage.GetFreeApplicationCount(r.Context(), student_id)
+
+		if dberr != nil {
+			slog.Error("db error", "error", dberr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, freeApplicationCoiunt)
+	}
+}

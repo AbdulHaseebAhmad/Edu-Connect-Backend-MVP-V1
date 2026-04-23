@@ -217,7 +217,7 @@ type University struct {
 	QsRanking       string `json:"qs_ranking"`
 	About           string `json:"about_university"`
 	Founded         string `json:"founded_date"`
-	Type            string `json:"Founded"`
+	Type            string `json:"type"`
 	Intake          string `json:"calendar"`
 	GradRate        string `json:"graduation_rate"`
 	Employability   string `json:"employability"`
@@ -528,4 +528,21 @@ type Commision struct {
 	Currency          string  `json:"currency" db:"currency"`
 	Receipt           *string `json:"receipt"`
 	ReceiptType       *string `json:"receipt_type"`
+}
+
+type SchoolStatistics struct {
+	PendingVerifications string `json:"pending_verifications"`
+	VerifiedStudents     string `json:"verified_students"`
+	UniversityEnrolled   string `json:"university_enrolled"`
+	TotalRevenue         string `json:"total_revenue"`
+}
+
+type Student struct {
+	UniversityId      string `json:"university_id"`
+	UniversityName    string `json:"university_name"`
+	StudentId         string `json:"student_id"`
+	StudentName       string `json:"first_name"`
+	StudentEmail      string `json:"email"`
+	StudentStatus     string `json:"status"`
+	ApplicationStatus string `json:"application_status"`
 }

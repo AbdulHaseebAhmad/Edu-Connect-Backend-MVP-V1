@@ -221,7 +221,7 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
             'session_intake', pr.session_intake,
             'program_fee', pr.program_fee,
             'program_status', pr.program_status,
-			'application_fee',pr.program_application_fee
+			'program_application_fee',pr.program_application_fee
         	) 
 		)AS programs
 		
@@ -242,7 +242,21 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
 		up.graduation_rate,
 		up.employability,
 		un.university_name
-		`, university_id).Scan(&universityprofile.UniversityId, &universityprofile.UniversityCity, &universityprofile.StudentsCount, &universityprofile.AcceptanceRate, &universityprofile.QSRanking, &universityprofile.AboutUniversity, &universityprofile.FoundedDate, &universityprofile.Type, &universityprofile.Calendar, &universityprofile.GraduationRate, &universityprofile.Employability, &universityprofile.UniversityName, &programs)
+		`, university_id).Scan(
+		&universityprofile.UniversityId,
+		&universityprofile.UniversityCity,
+		&universityprofile.StudentsCount,
+		&universityprofile.AcceptanceRate,
+		&universityprofile.QSRanking,
+		&universityprofile.AboutUniversity,
+		&universityprofile.FoundedDate,
+		&universityprofile.Type,
+		&universityprofile.Calendar,
+		&universityprofile.GraduationRate,
+		&universityprofile.Employability,
+		&universityprofile.UniversityName,
+		&programs)
+
 	if dberr != nil {
 		return Types.UniversityProfile{}, dberr
 	}
@@ -773,4 +787,15 @@ func (p StudentsAppStore) ScholarshipReminderCheck(ctx context.Context, student_
 	}
 
 	return exists, nil
+}
+
+func (p StudentsAppStore) GetFreeApplicationCount(ctx context.Context, student_id string) (freeappCount int, err error) {
+
+	var freeapplicationCount int
+
+	p.DB.QueryRowContext(ctx, `SELECT COUNT(*) as total_requests
+	from university_applications ua 
+	Left join programs pg on ua.program_id = pg.program_id
+	where student_id = $1 AND pg.program_application_fee = $2`, student_id, "0.00").Scan(&freeapplicationCount)
+	return freeapplicationCount, nil
 }

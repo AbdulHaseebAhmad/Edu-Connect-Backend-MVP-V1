@@ -158,6 +158,24 @@ func (p *UniversityStore) AddNewUniversity(ctx context.Context, University Types
 		return LoginDetails, err
 	}
 
+	_, err = tx.ExecContext(ctx, `
+INSERT INTO university_life 
+(university_id, media, media_type, media_file_name, media_size, media_tag)
+VALUES 
+($1, $2, $3, $4, $5, $6),
+($7, $8, $9, $10, $11, $12),
+($13, $14, $15, $16, $17, $18)
+`,
+		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "university_logo",
+		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "university_banner_image",
+		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "uni_profile_image",
+	)
+
+	if err != nil {
+		tx.Rollback()
+		return LoginDetails, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return LoginDetails, err
 	}

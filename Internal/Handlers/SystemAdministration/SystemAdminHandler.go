@@ -588,7 +588,7 @@ func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.H
         <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:20px;background:#f8f9fc;border:1px solid #eef1f8;border-radius:9px;"><tr><td style="padding:13px 14px;">
           <table cellpadding="0" cellspacing="0" border="0" width="100%%"><tr>
             <td style="width:42px;vertical-align:middle;"><table cellpadding="0" cellspacing="0" border="0"><tr><td style="background:linear-gradient(135deg,#0099e6,#5b3fcc);border-radius:9px;width:40px;height:40px;text-align:center;vertical-align:middle;"><span style="font-family:Georgia,serif;font-weight:900;font-size:14px;color:#fff;line-height:40px;display:block;">%s</span></td></tr></table></td>
-            <td style="padding-left:12px;vertical-align:middle;"><p style="margin:0;font-size:13.5px;font-weight:700;color:#131c36;">%s.</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">%s</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">%s</p></td>
+            <td style="padding-left:12px;vertical-align:middle;"><p style="margin:0;font-size:13.5px;font-weight:700;color:#131c36;">%s.</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">Email: %s</p><p style="margin:2px 0 0;font-size:11.5px;color:#94a3b8;">Password: %s</p></td>
             <td style="text-align:right;vertical-align:middle;"><span style="font-size:10.5px;font-weight:700;color:#059669;background:#f0fdf8;border:1px solid #a7f3d0;padding:3px 9px;border-radius:6px;">✓ Verified</span></td>
           </tr></table>
         </td></tr></table>

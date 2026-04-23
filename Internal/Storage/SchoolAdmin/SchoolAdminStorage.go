@@ -375,3 +375,112 @@ func (p SchoolAdminStore) GetSchoolProfileData(ctx context.Context, school_id st
 	}
 	return schoolData, nil
 }
+
+func (p SchoolAdminStore) GetSchoolStatistics(ctx context.Context, school_id string) (statistics Types.SchoolStatistics, err error) {
+	var statistic Types.SchoolStatistics
+	dberr := p.DB.QueryRowContext(
+		ctx,
+		`SELECT COUNT(*) AS total_students
+			FROM school_codes sc
+				JOIN students_credentials stc  ON stc.school_id = sc.school_code
+			WHERE sc.school_id = $1 AND stc.school_verified = $2`,
+		school_id, "un-verified",
+	).Scan(&statistic.PendingVerifications)
+
+	if dberr != nil {
+		return statistic, dberr
+	}
+
+	dberr = p.DB.QueryRowContext(
+		ctx,
+		`SELECT COUNT(*)
+	 FROM students_credentials
+	 WHERE school_verified = $1
+	   AND school_id = $2`,
+		"verified",
+		school_id,
+	).Scan(&statistic.VerifiedStudents)
+
+	if dberr != nil {
+		return statistic, dberr
+	}
+
+	dberr = p.DB.QueryRowContext(
+		ctx,
+		`SELECT COUNT(*) as enrolled_students
+	 FROM students_credentials stc
+	 JOIN university_applications ua on ua.student_id = stc.student_id AND ua.application_status = $2
+	 Where stc.school_id = $1`, school_id, "enrolled",
+	).Scan(&statistic.UniversityEnrolled)
+
+	if dberr != nil {
+		return statistic, dberr
+	}
+
+	return statistic, nil
+}
+
+func (p SchoolAdminStore) GetEnrolledStudents(ctx context.Context, school_id string) (studentss []Types.Student, err error) {
+	var Students []Types.Student
+
+	rows, dberr := p.DB.QueryContext(ctx, `
+			Select 
+			ua.university_id,
+			un.university_name,
+			stc.student_id,
+			sp.first_name,
+			sc.email,
+			ua.application_status,
+			stc.school_verified
+
+			from students_credentials stc 
+				Left join university_applications ua on stc.student_id = ua.student_id
+				Left join student_profile sp on sp.student_id = stc.student_id
+				Left join student_contact sc on sc.student_id = stc.student_id
+				Left join universities un on un.university_id = ua.university_id
+			where school_id = $1 AND ua.application_status = $2`, school_id, "enrolled")
+
+	if dberr != nil {
+		return []Types.Student{}, nil
+	}
+	for rows.Next() {
+		var Student Types.Student
+		Scaneerr := rows.Scan(&Student.UniversityId, &Student.UniversityName, &Student.StudentId, &Student.StudentName, &Student.StudentEmail, &Student.ApplicationStatus, &Student.StudentStatus)
+		if Scaneerr != nil {
+			return []Types.Student{}, nil
+		}
+		Students = append(Students, Student)
+	}
+
+	return Students, nil
+
+}
+func (p SchoolAdminStore) GetRejectedStudents(ctx context.Context, school_id string) (studentss []Types.Student, err error) {
+	var Students []Types.Student
+
+	rows, dberr := p.DB.QueryContext(ctx, `
+			Select 
+			stc.student_id,
+			sp.first_name,
+			sc.email,
+			stc.school_verified
+			from students_credentials stc 
+				Left join student_profile sp on sp.student_id = stc.student_id
+				Left join student_contact sc on sc.student_id = stc.student_id
+			where school_id = $1 AND stc.school_verified = $2`, school_id, "rejected")
+
+	if dberr != nil {
+		return []Types.Student{}, nil
+	}
+	for rows.Next() {
+		var Student Types.Student
+		Scaneerr := rows.Scan(&Student.StudentId, &Student.StudentName, &Student.StudentEmail, &Student.StudentStatus)
+		if Scaneerr != nil {
+			return []Types.Student{}, nil
+		}
+		Students = append(Students, Student)
+	}
+
+	return Students, nil
+
+}

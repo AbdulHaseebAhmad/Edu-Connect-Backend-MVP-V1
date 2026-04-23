@@ -53,6 +53,10 @@ type SchoolAdmin interface {
 	VerifyStudentAccount(ctx context.Context, school_id string, student_id string, status string) error
 	GetProcessedStudentsList(ctx context.Context, school_id string, status string) ([]Types.StudentProfile, error)
 	GetSchoolProfileData(ctx context.Context, school_id string) (Types.SchoolInformation, error)
+
+	GetSchoolStatistics(ctx context.Context, school_id string) (statistics Types.SchoolStatistics, err error)
+	GetEnrolledStudents(ctx context.Context, school_id string) (studentss []Types.Student, err error)
+	GetRejectedStudents(ctx context.Context, school_id string) (studentss []Types.Student, err error)
 }
 
 type StudentsApp interface {
@@ -84,6 +88,8 @@ type StudentsApp interface {
 
 	SetScholarshipReminder(ctx context.Context, student_id string, scholarship_id string) (email string, scholarshipTitle string, OpensDate string, err error)
 	ScholarshipReminderCheck(ctx context.Context, student_id string, scholarship_id string) (bool, error)
+
+	GetFreeApplicationCount(ctx context.Context, student_id string) (freeappCount int, err error)
 }
 
 type UniversityPortal interface {

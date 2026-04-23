@@ -301,3 +301,72 @@ func GetSchoolProfileData(storage Storage.SchoolAdmin) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, schoolData)
 	}
 }
+
+func GetSchoolStatistics(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+
+		if school_id == "" {
+			slog.Error("params rror", "error:", "School Id missing")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Request")
+			return
+		}
+
+		statistics, dberr := storage.GetSchoolStatistics(r.Context(), school_id)
+
+		if dberr != nil {
+			slog.Error("database error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, statistics)
+
+	}
+}
+
+func GetEnrolledStudents(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+
+		if school_id == "" {
+			slog.Error("params rror", "error:", "School Id missing")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Request")
+			return
+		}
+
+		students, dberr := storage.GetEnrolledStudents(r.Context(), school_id)
+
+		if dberr != nil {
+			slog.Error("database error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, students)
+
+	}
+}
+
+func GetRejectedStudents(storage Storage.SchoolAdmin) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		school_id := r.URL.Query().Get("school_id")
+
+		if school_id == "" {
+			slog.Error("params rror", "error:", "School Id missing")
+			response.WriteJson(w, http.StatusBadRequest, "Invalid URL Request")
+			return
+		}
+
+		students, dberr := storage.GetRejectedStudents(r.Context(), school_id)
+
+		if dberr != nil {
+			slog.Error("database error", "error", dberr)
+			response.WriteJson(w, http.StatusInternalServerError, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, students)
+
+	}
+}

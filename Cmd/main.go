@@ -87,6 +87,10 @@ func main() {
 	router.HandleFunc("GET /api/schooladmin/processed/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetProcessedStudentsList(schoolAdminStore)))
 	router.HandleFunc("GET /api/schooladmin/profile", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetSchoolProfileData(schoolAdminStore)))
 
+	router.HandleFunc("GET /api/schooladmin/statistics", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetSchoolStatistics(schoolAdminStore)))
+	router.HandleFunc("GET /api/schooladmin/enrolled/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetEnrolledStudents(schoolAdminStore)))
+	router.HandleFunc("GET /api/schooladmin/rejected/students", Middlewares.Authorizer(sysAdminStore, SchoolAdminHandler.GetRejectedStudents(schoolAdminStore)))
+
 	//----> School Admin Routes Ennd <----
 
 	//->> Sys Admin Auth Routes Start
@@ -172,6 +176,7 @@ func main() {
 	router.Handle("GET /api/students/app/scholarship/reminder", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.SetScholarshipReminder(studentStore, smtp)))
 	router.Handle("GET /api/students/app/scholarship/reminder/set", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ScholarshipReminderCheck(studentStore, smtp)))
 
+	router.Handle("GET /api/students/app/freeapplication/check", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetFreeApplicationCount(studentStore)))
 	//---->   Routes End   <-----
 
 	//TGL
