@@ -164,11 +164,23 @@ INSERT INTO university_life
 VALUES 
 ($1, $2, $3, $4, $5, $6),
 ($7, $8, $9, $10, $11, $12),
-($13, $14, $15, $16, $17, $18)
+($13, $14, $15, $16, $17, $18),
+($19, $20, $21, $22, $23, $24),
+($25, $26, $27, $28, $29, $30),
+($31, $32, $33, $34, $35, $36),
+($37, $38, $39, $40, $41, $42),
+($43, $44, $45, $46, $47, $48),
+($49, $50, $51, $52, $53, $54)
 `,
-		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "university_logo",
-		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "university_banner_image",
-		university_id, "\xDEADBEEF", "image/avif", "black screen.avif", 0, "uni_profile_image",
+		university_id, []byte(University.UniversityLogo), "image/avif", "black screen.avif", 0, "university_logo",
+		university_id, []byte(University.UniversityBanner), "image/avif", "black screen.avif", 0, "university_banner_image",
+		university_id, []byte(University.UniversityProfile), "image/avif", "black screen.avif", 0, "university_profile_image",
+		university_id, []byte(University.UniversityVideo), "image/avif", "black screen.avif", 0, "university_gallery_video",
+		university_id, []byte(University.UniversityMain), "image/avif", "black screen.avif", 0, "university_gallery_main",
+		university_id, []byte(University.UniversitySecondaryOne), "image/avif", "black screen.avif", 0, "university_secondary_one",
+		university_id, []byte(University.UniversitySecondaryTwo), "image/avif", "black screen.avif", 0, "university_secondary_two",
+		university_id, []byte(University.UniversitySecondaryThree), "image/avif", "black screen.avif", 0, "university_secondary_three",
+		university_id, []byte(University.UniversitySecondaryFour), "image/avif", "black screen.avif", 0, "university_secondary_four",
 	)
 
 	if err != nil {
@@ -251,14 +263,39 @@ func (p UniversityStore) GetStudntsApplications(ctx context.Context, university_
     se.language_type, se.language_overall_score, se.language_reading, 
     se.language_writting, se.language_speaking, se.language_listening,
     spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
-    spr.annual_budget, spr.scholarship_interest
+    spr.annual_budget, spr.scholarship_interest,
+		json_agg(
+        json_build_object(
+            'document_id', doc.document_id,
+            'name', doc.document_name,
+            'document_name', doc.document_file_name,
+            'status', doc.document_status,
+            'data', doc.document,
+            'type', doc.document_type
+        	) 
+		)AS documents
 	FROM university_applications AS ua 
 	LEFT JOIN programs AS p ON ua.program_id = p.program_id 
 	LEFT JOIN student_profile AS sp ON ua.student_id = sp.student_id 
 	LEFT JOIN student_contact AS sc ON ua.student_id = sc.student_id
 	LEFT JOIN student_education AS se ON ua.student_id = se.student_id
 	LEFT JOIN students_preferences AS spr ON ua.student_id = spr.student_id
+	Left JOIN students_documents AS doc on doc.student_id = ua.student_id
 	WHERE ua.university_id = $1 AND ua.decision_status = $2
+	GROUP BY
+	ua.student_id,ua.university_id,ua.decision_status,TO_CHAR(ua.created_at,'Mon DD, YYYY'),ua.application_id,
+	p.program_name,p.session_intake,
+    sp.first_name, sp.last_name, sp.middle_name, sp.dob, sp.gender, sp.nationality, 
+    sp.passport_number, sp.passport_expiry, sp.marrital_status,
+    sc.email, sc.phone_number, sc.whatsapp_number, sc.permanent_address, sc.street_address,
+    sc.city, sc.state_province, sc.zip_postal_code, sc.emergency_phone, 
+    sc.emergency_contact_name, sc.emergency_relationship,
+    se.school_name, se.curriculum, se.graduation_year, se.cummulative_score,
+    se.language_type, se.language_overall_score, se.language_reading, 
+    se.language_writting, se.language_speaking, se.language_listening,
+    spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
+    spr.annual_budget, spr.scholarship_interest
+
 `, university_id, status)
 
 	if q2err != nil {
@@ -268,6 +305,8 @@ func (p UniversityStore) GetStudntsApplications(ctx context.Context, university_
 
 	for rows.Next() {
 		var studentDetails Types.StudentProfile
+		var docBytes []byte
+
 		scanerr := rows.Scan(
 			&studentDetails.StudentId,
 			&studentDetails.UniversityId,
@@ -311,10 +350,18 @@ func (p UniversityStore) GetStudntsApplications(ctx context.Context, university_
 			&studentDetails.StudentPrefferences.PrefferedDate,
 			&studentDetails.StudentPrefferences.AnnualBudget,
 			&studentDetails.StudentPrefferences.Schalarship,
+			&docBytes,
 		)
 
 		if scanerr != nil {
 			return nil, scanerr
+		}
+
+		err := json.Unmarshal(docBytes, &studentDetails.Documents)
+
+		if err != nil {
+			return nil, err
+
 		}
 
 		studentDetailsList = append(studentDetailsList, studentDetails)
@@ -338,14 +385,38 @@ func (p UniversityStore) GetAllStudntsApplications(ctx context.Context, universi
     se.language_type, se.language_overall_score, se.language_reading, 
     se.language_writting, se.language_speaking, se.language_listening,
     spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
-    spr.annual_budget, spr.scholarship_interest
+    spr.annual_budget, spr.scholarship_interest,
+	json_agg(
+        json_build_object(
+            'document_id', doc.document_id,
+            'name', doc.document_name,
+            'document_name', doc.document_file_name,
+            'status', doc.document_status,
+            'data', doc.document,
+            'type', doc.document_type
+        	) 
+		)AS documents
 	FROM university_applications AS ua 
 	LEFT JOIN programs AS p ON ua.program_id = p.program_id 
 	LEFT JOIN student_profile AS sp ON ua.student_id = sp.student_id 
 	LEFT JOIN student_contact AS sc ON ua.student_id = sc.student_id
 	LEFT JOIN student_education AS se ON ua.student_id = se.student_id
 	LEFT JOIN students_preferences AS spr ON ua.student_id = spr.student_id
+	Left JOIN students_documents AS doc on doc.student_id = ua.student_id
 	WHERE ua.decision_status = $1
+	GROUP BY
+	ua.student_id,ua.university_id,ua.decision_status,TO_CHAR(ua.created_at,'Mon DD, YYYY'),ua.application_id,
+	p.program_name,p.session_intake,
+    sp.first_name, sp.last_name, sp.middle_name, sp.dob, sp.gender, sp.nationality, 
+    sp.passport_number, sp.passport_expiry, sp.marrital_status,
+    sc.email, sc.phone_number, sc.whatsapp_number, sc.permanent_address, sc.street_address,
+    sc.city, sc.state_province, sc.zip_postal_code, sc.emergency_phone, 
+    sc.emergency_contact_name, sc.emergency_relationship,
+    se.school_name, se.curriculum, se.graduation_year, se.cummulative_score,
+    se.language_type, se.language_overall_score, se.language_reading, 
+    se.language_writting, se.language_speaking, se.language_listening,
+    spr.primary_career_interest, spr.degree_level, spr.preferred_start_date, 
+    spr.annual_budget, spr.scholarship_interest
 `, status)
 
 	if q2err != nil {
@@ -355,6 +426,8 @@ func (p UniversityStore) GetAllStudntsApplications(ctx context.Context, universi
 
 	for rows.Next() {
 		var studentDetails Types.StudentProfile
+		var docBytes []byte
+
 		scanerr := rows.Scan(
 			&studentDetails.StudentId,
 			&studentDetails.UniversityId,
@@ -398,10 +471,18 @@ func (p UniversityStore) GetAllStudntsApplications(ctx context.Context, universi
 			&studentDetails.StudentPrefferences.PrefferedDate,
 			&studentDetails.StudentPrefferences.AnnualBudget,
 			&studentDetails.StudentPrefferences.Schalarship,
+			&docBytes,
 		)
 
 		if scanerr != nil {
 			return nil, scanerr
+		}
+
+		err := json.Unmarshal(docBytes, &studentDetails.Documents)
+
+		if err != nil {
+			return nil, err
+
 		}
 
 		studentDetailsList = append(studentDetailsList, studentDetails)
@@ -425,14 +506,14 @@ func (p UniversityStore) GetUniversityProgramsList(ctx context.Context, universi
 	rows, dber := p.DB.QueryContext(ctx, `SELECT program_id, program_name, session_intake,program_status, program_capacity from programs where university_id = $1`, university_id)
 
 	if dber != nil {
-		return nil, dber
+		return []Types.ProgrameThumbnail{}, dber
 	}
 
 	for rows.Next() {
 		var program Types.ProgrameThumbnail
 		err := rows.Scan(&program.Id, &program.Name, &program.SessionIntake, &program.Status, &program.Capacity)
 		if err != nil {
-			return nil, err
+			return []Types.ProgrameThumbnail{}, err
 		}
 		programsList = append(programsList, program)
 	}
