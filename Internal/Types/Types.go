@@ -275,7 +275,7 @@ type UniMedia struct {
 	Media         string `json:"media"`
 	MediaFileName string `json:"media_file_name"`
 	MediaType     string `json:"media_type"`
-	MediaSize     string `json:"media_size"`
+	MediaSize     int    `json:"media_size"`
 	MediaTag      string `json:"media_tag"`
 }
 

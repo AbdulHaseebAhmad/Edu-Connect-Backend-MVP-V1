@@ -198,50 +198,57 @@ func (p *StudentsAppStore) GetUniversitiesList(ctx context.Context, countryCode 
 func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_id string) (Types.UniversityProfile, error) {
 	var universityprofile Types.UniversityProfile
 	var programs []byte
+	var media []byte
 	dberr := p.DB.QueryRowContext(ctx, `SELECT
-		up.university_id,
-		up.university_city,
-		up.students_count,
-		up.acceptance_rate,
-		up.qs_ranking,
-		up.about_university,
-		up.founded_date,
-		up.type,
-		up.calendar,
-		up.graduation_rate,
-		up.employability,
-		un.university_name,
+    up.university_id,
+    up.university_city,
+    up.students_count,
+    up.acceptance_rate,
+    up.qs_ranking,
+    up.about_university,
+    up.founded_date,
+    up.type,
+    up.calendar,
+    up.graduation_rate,
+    up.employability,
+    un.university_name,
 
-		json_agg(
-        json_build_object(
-            'program_id', pr.program_id,
-            'program_name', pr.program_name,
-            'program_level', pr.program_level,
-            'program_duration', pr.program_duration,
-            'session_intake', pr.session_intake,
-            'program_fee', pr.program_fee,
-            'program_status', pr.program_status,
-			'program_application_fee',pr.program_application_fee
-        	) 
-		)AS programs
-		
-		from university_profile up
-		Left join programs pr on up.university_id = pr.university_id 
-		Left join universities un on up.university_id = un.university_id
-		where up.university_id = $1
-		GROUP BY 
-		up.university_id,
-		up.university_city,
-		up.students_count,
-		up.acceptance_rate,
-		up.qs_ranking,
-		up.about_university,
-		up.founded_date,
-		up.type,
-		up.calendar,
-		up.graduation_rate,
-		up.employability,
-		un.university_name
+    (
+        SELECT json_agg(
+            json_build_object(
+                'program_id', pr.program_id,
+                'program_name', pr.program_name,
+                'program_level', pr.program_level,
+                'program_duration', pr.program_duration,
+                'session_intake', pr.session_intake,
+                'program_fee', pr.program_fee,
+                'program_status', pr.program_status,
+                'program_application_fee', pr.program_application_fee
+            )
+        )
+        FROM programs pr
+        WHERE pr.university_id = up.university_id
+    ) AS programs,
+
+    (
+        SELECT json_agg(
+            json_build_object(
+                'media_tag', ul.media_tag,
+                'media_size', ul.media_size,
+                'media_file_name', ul.media_file_name,
+                'media_type', ul.media_type,
+                'media', ul.media,
+                'media_id', ul.media_id
+            )
+        )
+        FROM university_life ul
+        WHERE ul.university_id = up.university_id
+    ) AS media
+
+FROM university_profile up
+LEFT JOIN universities un 
+    ON up.university_id = un.university_id
+WHERE up.university_id = $1
 		`, university_id).Scan(
 		&universityprofile.UniversityId,
 		&universityprofile.UniversityCity,
@@ -255,7 +262,9 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
 		&universityprofile.GraduationRate,
 		&universityprofile.Employability,
 		&universityprofile.UniversityName,
-		&programs)
+		&programs,
+		&media,
+	)
 
 	if dberr != nil {
 		return Types.UniversityProfile{}, dberr
@@ -264,10 +273,15 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
 	err := json.Unmarshal(programs, &universityprofile.Programs)
 
 	if err != nil {
-		return Types.UniversityProfile{}, dberr
+		return Types.UniversityProfile{}, err
 
 	}
+	err = json.Unmarshal(media, &universityprofile.Media)
 
+	if err != nil {
+		return Types.UniversityProfile{}, err
+	}
+	// fmt.Println(universityprofile)
 	return universityprofile, nil
 }
 
