@@ -560,7 +560,7 @@ func RegisterForEvent(storage Storage.StudentsApp, smtp Email.EmailSender) http.
 			webinar_code,
 		)
 
-		smtperr := smtp.Send(student_email, "Response", message)
+		smtperr := smtp.Send(student_email, "Event Registration Confirmed", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)
@@ -752,7 +752,7 @@ func SetScholarshipReminder(storage Storage.StudentsApp, smtp Email.EmailSender)
 					</table>
 
 					<p style="margin:16px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">
-						Questions? We re here — <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a>
+						Questions? We re here — <a href="mailto:hello@geosedtech.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">hello@geosedtech.com</a>
 					</p>
 					</td>
 				</tr>
@@ -778,7 +778,7 @@ func SetScholarshipReminder(storage Storage.StudentsApp, smtp Email.EmailSender)
 			opens_date,
 		)
 
-		smtperr := smtp.Send(student_email, "Response", message)
+		smtperr := smtp.Send(student_email, "Scholarship Reminder Set", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)

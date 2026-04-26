@@ -342,20 +342,23 @@ func (p SchoolAdminStore) GetSchoolProfileData(ctx context.Context, school_id st
 	var schoolData Types.SchoolInformation
 
 	dberr := p.DB.QueryRowContext(ctx, `SELECT 
-	registration_code,
-	school_name,
-	school_email,
-	admin_name,
-	school_phone,
-	school_country,
-	school_curriculum,
-	school_branch,
-	school_city,
-	school_id,
-	status,
-	sys_email,
-	username
-	 from schools where school_id = $1`, school_id).Scan(
+	sc.registration_code,
+	sc.school_name,
+	sc.school_email,
+	sc.admin_name,
+	sc.school_phone,
+	sc.school_country,
+	sc.school_curriculum,
+	sc.school_branch,
+	sc.school_city,
+	sc.school_id,
+	sc.status,
+	sc.sys_email,
+	sc.username,
+	ssc.school_code
+	 from schools sc
+	 Left JOIN school_codes ssc on ssc.school_id = sc.school_id
+	 where sc.school_id = $1`, school_id).Scan(
 		&schoolData.RegistrationCode,
 		&schoolData.School,
 		&schoolData.Email,
@@ -368,7 +371,8 @@ func (p SchoolAdminStore) GetSchoolProfileData(ctx context.Context, school_id st
 		&schoolData.SchoolId,
 		&schoolData.Status,
 		&schoolData.Sys_Eamil,
-		&schoolData.Username)
+		&schoolData.Username,
+		&schoolData.Code)
 
 	if dberr != nil {
 		return Types.SchoolInformation{}, dberr

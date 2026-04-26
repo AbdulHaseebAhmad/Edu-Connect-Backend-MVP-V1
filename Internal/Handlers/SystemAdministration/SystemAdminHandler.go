@@ -172,9 +172,9 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 
 		message := fmt.Sprintf(`<!DOCTYPE html>
 <html lang="en">
-<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Access Your GEOS Greatness</title></head>
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Access Your GEOS Application</title></head>
 <body style="margin:0;padding:0;background-color:#f0f2f8;font-family:Arial,sans-serif;">
-<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Peace and Blessings! Your link to access greatness on GEOS is here.</span>
+<span style="display:none;max-height:0;overflow:hidden;mso-hide:all;">Welcome to the world of GEOS! Your link to access greatness on GEOS is here.</span>
 <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="background-color:#f0f2f8;padding:40px 16px;">
   <tr><td align="center">
     <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="max-width:540px;border-radius:10px;overflow:hidden;box-shadow:0 2px 16px rgba(19,28,54,0.08);">
@@ -190,16 +190,16 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
       </td></tr>
       <tr><td style="background:#ffffff;padding:28px 32px;text-align:center;">
         <p style="margin:0 0 8px;font-size:32px;line-height:1;">✨</p>
-        <p style="margin:8px 0 16px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Peace and Blessings</p>
-        <h1 style="margin:0 0 24px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">Here is your link to access greatness</h1>
+        <p style="margin:8px 0 16px;font-size:11.5px;font-weight:600;color:#94a3b8;letter-spacing:1px;text-transform:uppercase;">Welcome to the world of GEOS</p>
+        <h1 style="margin:0 0 24px;font-family:Georgia,serif;font-size:22px;font-weight:900;color:#131c36;line-height:1.25;">Here is your link.</h1>
         
         <!-- Main CTA Button - Full Width Focus -->
         <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:32px;"><tr><td align="center">
-          <a href="%s" style="display:inline-block;background:linear-gradient(135deg,#0099e6,#5b3fcc);color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:16px;text-decoration:none;padding:20px 50px;border-radius:12px;box-shadow:0 6px 24px rgba(0,153,230,0.4);letter-spacing:0.5px;">Access Greatness →</a>
+          <a href="%s" style="display:inline-block;background:linear-gradient(135deg,#0099e6,#5b3fcc);color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:16px;text-decoration:none;padding:20px 50px;border-radius:12px;box-shadow:0 6px 24px rgba(0,153,230,0.4);letter-spacing:0.5px;">Application Form →</a>
         </td></tr></table>
 
         <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
-        <p style="margin:24px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a></p>
+        <p style="margin:24px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? <a href="mailto:hello@geosedtech.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">hello@geosedtech.com</a></p>
       </td></tr>
       <tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
         <p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Unsubscribe</a></p>
@@ -210,7 +210,7 @@ func SendInvite(sysadminStore Storage.SysAdmin, smtp Email.EmailSender) http.Han
 </table>
 </body>
 </html>`, link)
-		smtperr := smtp.Send(email, "Invitation", message)
+		smtperr := smtp.Send(email, "Invitation - Access Your GEOS Greatness", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)
@@ -459,7 +459,7 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
           </tr></table></td></tr>
 				</table>
 				<table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
-				<p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.8;">Need help getting started? Our partnerships team is here — <a href="mailto:schools@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">schools@geos.com</a></p>
+				<p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.8;">Need help getting started? Our partnerships team is here — <a href="mailto:hello@geosedtech.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">hello@geosedtech.com</a></p>
 			</td></tr>
 			<tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
 				<p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">School Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Contact Partnerships</a></p>
@@ -487,13 +487,13 @@ func RespondToSchoolApplication(sysAdminStore Storage.SysAdmin, smtp Email.Email
 	<title>Application Response</title>
 </head>
 <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #222;">
-	<h2>Peace and Blessings be upon you</h2>
+	<h2>Welcome to the world of GEOS</h2>
 	<p>Your application to join the system was rejected.</p>
 </body>
 </html>`
 		}
 
-		smtperr := smtp.Send(schoolInfo.Email, "Response", message)
+		smtperr := smtp.Send(schoolInfo.Email, "Your School is Verified", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)
@@ -624,7 +624,7 @@ func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.H
           <a href="https://geosedutest.web.app/student/login" style="display:inline-block;background:#131c36;color:#ffffff;font-family:Arial,sans-serif;font-weight:700;font-size:14px;text-decoration:none;padding:13px 40px;border-radius:9px;">Go to My Dashboard →</a>
         </td></tr></table>
         <table width="100%%" cellpadding="0" cellspacing="0" border="0"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
-        <p style="margin:16px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? We're here — <a href="mailto:support@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">support@geos.com</a></p>
+        <p style="margin:16px 0 0;text-align:center;font-size:13px;color:#4b5a7a;">Questions? We're here — <a href="mailto:hello@geosedtech.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">hello@geosedtech.com</a></p>
       </td></tr>
       <tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
         <p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Unsubscribe</a></p>
@@ -637,7 +637,7 @@ func RespondApplication(storage Storage.SysAdmin, smtp Email.EmailSender) http.H
 </html>
 `, strings.ToUpper(string(fname[0])), fname, email, password)
 		} else {
-			message = "Peace and Blessings be upon you. Your application to join the system was rejected"
+			message = "Welcome to the world of GEOS. Your application to join the system was rejected"
 
 		}
 

@@ -184,7 +184,7 @@ func SubmitInviteData(storage Storage.SchoolAdmin, smtp Email.EmailSender) http.
           </tr></table></td></tr></table></td></tr>
         </table>
         <table width="100%%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom:14px;"><tr><td style="height:1px;background:#f0f2f8;font-size:0;">&nbsp;</td></tr></table>
-        <p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.8;">Questions? Reach our partnerships team at <a href="mailto:schools@geos.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">schools@geos.com</a> or call <strong style="color:#131c36;">+44 20 1234 5678</strong>.</p>
+        <p style="margin:0;font-size:13px;color:#4b5a7a;line-height:1.8;">Questions? Reach our partnerships team at <a href="mailto:hello@geosedtech.com" style="color:#5b3fcc;font-weight:600;text-decoration:none;">hello@geosedtech.com</a> or call <strong style="color:#131c36;">+44 20 1234 5678</strong>.</p>
       </td></tr>
       <tr><td style="background:#f8f9fc;padding:16px 32px;border-top:1px solid #f0f2f8;text-align:center;">
         <p style="margin:0 0 7px;"><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Privacy Policy</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">School Help Centre</a><a href="#" style="font-size:11px;color:#94a3b8;text-decoration:underline;margin:0 8px;">Contact Partnerships</a></p>
@@ -196,7 +196,7 @@ func SubmitInviteData(storage Storage.SchoolAdmin, smtp Email.EmailSender) http.
 </body>
 </html>
 `, SchoolInformation.School)
-		smtperr := smtp.Send(SchoolInformation.Email, "Response", message)
+		smtperr := smtp.Send(SchoolInformation.Email, "School Application Under Review", message)
 
 		if smtperr != nil {
 			slog.Info("SMTP error", "message", smtperr)
