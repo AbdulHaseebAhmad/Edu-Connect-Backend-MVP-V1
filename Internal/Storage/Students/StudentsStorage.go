@@ -213,37 +213,43 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
     up.employability,
     un.university_name,
 
-    (
-        SELECT json_agg(
-            json_build_object(
-                'program_id', pr.program_id,
-                'program_name', pr.program_name,
-                'program_level', pr.program_level,
-                'program_duration', pr.program_duration,
-                'session_intake', pr.session_intake,
-                'program_fee', pr.program_fee,
-                'program_status', pr.program_status,
-                'program_application_fee', pr.program_application_fee
-            )
-        )
-        FROM programs pr
-        WHERE pr.university_id = up.university_id
-    ) AS programs,
+ COALESCE(
+  (
+    SELECT json_agg(
+      json_build_object(
+        'program_id', pr.program_id,
+        'program_name', pr.program_name,
+        'program_level', pr.program_level,
+        'program_duration', pr.program_duration,
+        'session_intake', pr.session_intake,
+        'program_fee', pr.program_fee,
+        'program_status', pr.program_status,
+        'program_application_fee', pr.program_application_fee
+      )
+    )
+    FROM programs pr
+    WHERE pr.university_id = up.university_id
+  ),
+  '[]'::json
+) AS programs,
 
-    (
-        SELECT json_agg(
-            json_build_object(
-                'media_tag', ul.media_tag,
-                'media_size', ul.media_size,
-                'media_file_name', ul.media_file_name,
-                'media_type', ul.media_type,
-                'media', ul.media,
-                'media_id', ul.media_id
-            )
-        )
-        FROM university_life ul
-        WHERE ul.university_id = up.university_id
-    ) AS media
+   COALESCE(
+  (
+    SELECT json_agg(
+      json_build_object(
+        'media_tag', ul.media_tag,
+        'media_size', ul.media_size,
+        'media_file_name', ul.media_file_name,
+        'media_type', ul.media_type,
+        'media', ul.media,
+        'media_id', ul.media_id
+      )
+    )
+    FROM university_life ul
+    WHERE ul.university_id = up.university_id
+  ),
+  '[]'::json
+) AS media
 
 FROM university_profile up
 LEFT JOIN universities un 
@@ -273,13 +279,13 @@ WHERE up.university_id = $1
 	err := json.Unmarshal(programs, &universityprofile.Programs)
 
 	if err != nil {
-		return Types.UniversityProfile{}, err
+		return universityprofile, err
 
 	}
 	err = json.Unmarshal(media, &universityprofile.Media)
 
 	if err != nil {
-		return Types.UniversityProfile{}, err
+		return universityprofile, err
 	}
 	// fmt.Println(universityprofile)
 	return universityprofile, nil
