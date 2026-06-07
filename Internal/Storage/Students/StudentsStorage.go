@@ -212,6 +212,7 @@ func (p StudentsAppStore) GetUniversityProfile(ctx context.Context, university_i
     up.graduation_rate,
     up.employability,
     un.university_name,
+	un.currency,
 
  COALESCE(
   (
@@ -268,6 +269,7 @@ WHERE up.university_id = $1
 		&universityprofile.GraduationRate,
 		&universityprofile.Employability,
 		&universityprofile.UniversityName,
+		&universityprofile.UniversityCurrency,
 		&programs,
 		&media,
 	)
@@ -298,7 +300,8 @@ func (p *StudentsAppStore) GetUniversityPrograms(ctx context.Context, program_id
             p.program_requirements, p.related_tags, p.possible_careers, 
             p.program_application_fee, p.program_required_documents , p.university_id,
 
-			u.university_name
+			u.university_name,
+			u.currency
      FROM programs p
 	 left join universities u on p.university_id = u.university_id
      WHERE program_id = $1`,
@@ -314,7 +317,7 @@ func (p *StudentsAppStore) GetUniversityPrograms(ctx context.Context, program_id
 		var relatedTags pgtype.JSONB
 		var possibleCareers pgtype.JSONB
 		var requiredDocuments pgtype.JSONB
-		serr := rows.Scan(&program.Id, &program.Name, &program.PFee, &program.Duration, &program.SessionIntake, &program.Description, &requirements, &relatedTags, &possibleCareers, &program.AFee, &requiredDocuments, &program.UniversityCode, &program.UniversityName)
+		serr := rows.Scan(&program.Id, &program.Name, &program.PFee, &program.Duration, &program.SessionIntake, &program.Description, &requirements, &relatedTags, &possibleCareers, &program.AFee, &requiredDocuments, &program.UniversityCode, &program.UniversityName, &program.UniversityCurrency)
 		if serr != nil {
 			return []Types.Programe{}, serr
 		}

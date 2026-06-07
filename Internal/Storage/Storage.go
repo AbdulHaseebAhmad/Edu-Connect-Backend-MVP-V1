@@ -106,3 +106,19 @@ type UniversityPortal interface {
 
 	AddNewUniversity(ctx context.Context, University Types.University) (Types.UniversityLogin, error)
 }
+
+type TglApp interface {
+	TglUserSignin(ctx context.Context, studentLogin Types.TglSignIn) (sessionToken string, csrfToken string, studentAuth *Types.TglUserAuthenticated, err error)
+	TglUploadProduct(ctx context.Context, product Types.TglProduct) error
+	TglGetProducts(ctx context.Context) (products []Types.TglProduct, err error)
+	TglSaveCustomer(ctx context.Context, customer Types.TglCustomer) error
+	TglUpdateCustomer(ctx context.Context, customer Types.TglCustomer) error
+	TglStatusCustomer(ctx context.Context, status bool, customer_id string) error
+	TglGetCustomers(ctx context.Context) (customers []Types.TglCustomer, err error)
+	TglPlaceOrder(ctx context.Context, order []Types.TglOrder) (order_id string, err error)
+	TglAddMintsoftOrderId(ctx context.Context, order_id string, mintsoft_order_id string, status string) error
+	TglGetOrders(ctx context.Context) (orders []Types.TglOrderReturn, err error)
+	TglGetSysClients(ctx context.Context) (clients []Types.TglClients, err error)
+	TglAddSysClients(ctx context.Context, client Types.TglClients) error
+	TglUpdateSysClients(ctx context.Context, client Types.TglClients) error
+}

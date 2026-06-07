@@ -23,6 +23,7 @@ import (
 	SchoolAdminStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/SchoolAdmin"
 	StudentsAppStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Students"
 	SysAdminStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/SysAdmins"
+	TglAppStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/TGL"
 	UniversityStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/University"
 	"github.com/rs/cors"
 )
@@ -53,6 +54,8 @@ func main() {
 	schoolAdminStore := SchoolAdminStorage.NewSchoolAdminStore(db)
 
 	universityStore := UniversityStorage.NewUniversityStore(db)
+
+	TglStore := TglAppStorage.NewTglAppStore(db)
 
 	//setup router
 	router := http.NewServeMux()
@@ -195,7 +198,27 @@ func main() {
 	router.Handle("GET /api/tgl/get/inventory", Tgl.GetStockInventory())
 	router.Handle("GET /api/tgl/get/warehouse", Tgl.GetWarehousesData())
 	router.Handle("GET /api/tgl/get/clients", Tgl.GetClients())
+	router.Handle("GET /api/tgl/get/all/products", Tgl.GetAllProducts())
+	router.Handle("GET /api/tgl/get/stock/products", Tgl.GetOnhandStockLevel())
+	router.Handle("POST /api/tgl/post/orders/order", Tgl.PlaceMintsoftOrder())
+	router.Handle("GET /api/tgl/order/status", Tgl.ChangeMintsoftOrderStatus())
 
+	// Customs
+
+	router.Handle("POST /api/tgl/user/login", Tgl.TglUserSignin(TglStore))
+	router.Handle("POST /api/tgl/products/upload", Middlewares.Authorizer(sysAdminStore, Tgl.TglUploadProduct(TglStore)))
+	router.Handle("GET /api/tgl/products/get", Middlewares.Authorizer(sysAdminStore, Tgl.TglGetProducts(TglStore)))
+	router.Handle("POST /api/tgl/customer/save", Middlewares.Authorizer(sysAdminStore, Tgl.TglSaveCustomer(TglStore)))
+	router.Handle("PUT /api/tgl/customer/update", Middlewares.Authorizer(sysAdminStore, Tgl.TglUpdateCustomer(TglStore)))
+	router.Handle("GET /api/tgl/customer/status", Middlewares.Authorizer(sysAdminStore, Tgl.TglStatusCustomer(TglStore)))
+	router.Handle("GET /api/tgl/customer/get", Middlewares.Authorizer(sysAdminStore, Tgl.TglGetCustomers(TglStore)))
+	router.Handle("POST /api/tgl/order/place", Middlewares.Authorizer(sysAdminStore, Tgl.TglPlaceOrder(TglStore)))
+	router.Handle("GET /api/tgl/order/id/mintsoft", Middlewares.Authorizer(sysAdminStore, Tgl.TglAddMintsoftOrderId(TglStore)))
+	router.Handle("GET /api/tgl/order/get", Middlewares.Authorizer(sysAdminStore, Tgl.TglGetOrders(TglStore)))
+
+	router.Handle("GET /api/tgl/sys/clients/get", Middlewares.Authorizer(sysAdminStore, Tgl.TglGetSysClients(TglStore)))
+	router.Handle("POST /api/tgl/sys/clients/add", Middlewares.Authorizer(sysAdminStore, Tgl.TglAddSysClients(TglStore)))
+	router.Handle("PUT /api/tgl/sys/clients/update", Middlewares.Authorizer(sysAdminStore, Tgl.TglUpdateSysClients(TglStore)))
 	//TGL//
 	// configure CORS options
 	c := cors.New(cors.Options{

@@ -66,6 +66,16 @@ type SchoolAdminAuthenticated struct {
 	CsrfToken     string `json:"csrf_token"`
 }
 
+type TglUserAuthenticated struct {
+	Role          string `json:"role" validate:"required"`
+	Authenticated bool   `json:"authenticated" validate:"required"`
+	Name          string `json:"name" validate:"required"`
+	Status        bool   `json:"status" validate:"required"`
+	Email         string `json:"email" validate:"required,email"`
+	Id            string `json:"user_id" validate:"required"`
+	CsrfToken     string `json:"csrf_token"`
+}
+
 type SysAdminKey string
 type SysAdminId string
 
@@ -179,6 +189,10 @@ type StudentsSignIn struct {
 	Email    string `json:"email" validate:"required,email"`
 	Password string `json:"password" validate:"required"`
 }
+type TglSignIn struct {
+	Email    string `json:"email" validate:"required,email"`
+	Password string `json:"password" validate:"required"`
+}
 
 type Countries struct {
 	Name         string `json:"name"`
@@ -248,6 +262,7 @@ type UniversityProfile struct {
 	Programs        []UniProfileProgram
 	Media           []UniMedia
 	UniContact
+	UniversityCurrency string `json:"university_currency"`
 }
 
 type UniContact struct {
@@ -292,20 +307,21 @@ type UniProfileProgram struct {
 type Programe struct {
 	Id string `json:"program_id" db:"program_id"`
 	// PCode           string   `json:"program_code" db:"program_code"`
-	Name            string   `json:"program_name"`
-	PFee            string   `json:"program_fee"`
-	Duration        string   `json:"program_duration"`
-	SessionIntake   string   `json:"session_intake"`
-	Description     string   `json:"program_description"`
-	Requirements    []string `db:"program_requirements" json:"program_requirements"`
-	RelatedTags     []string `db:"related_tags" json:"related_tags"`
-	PossibleCareers []string `db:"possible_careers" json:"possible_careers"`
-	RequiredDocs    []string `db:"program_required_documents" json:"program_required_documents"`
-	AFee            string   `json:"program_application_fee"`
-	UniversityCode  string   `json:"university_id"`
-	UniversityName  string   `json:"university_name"`
-	ProgramLevel    string   `json:"program_level"`
-	ProgramCapacity string   `json:"program_capacity"`
+	Name               string   `json:"program_name"`
+	PFee               string   `json:"program_fee"`
+	Duration           string   `json:"program_duration"`
+	SessionIntake      string   `json:"session_intake"`
+	Description        string   `json:"program_description"`
+	Requirements       []string `db:"program_requirements" json:"program_requirements"`
+	RelatedTags        []string `db:"related_tags" json:"related_tags"`
+	PossibleCareers    []string `db:"possible_careers" json:"possible_careers"`
+	RequiredDocs       []string `db:"program_required_documents" json:"program_required_documents"`
+	AFee               string   `json:"program_application_fee"`
+	UniversityCode     string   `json:"university_id"`
+	UniversityName     string   `json:"university_name"`
+	ProgramLevel       string   `json:"program_level"`
+	ProgramCapacity    string   `json:"program_capacity"`
+	UniversityCurrency string   `json:"university_currency"`
 }
 
 type ProgrameThumbnail struct {
@@ -554,4 +570,86 @@ type Student struct {
 	StudentEmail      string `json:"email"`
 	StudentStatus     string `json:"status"`
 	ApplicationStatus string `json:"application_status"`
+}
+
+type TglProduct struct {
+	ID            int64  `json:"id" db:"id"`
+	ProductID     string `json:"product_id" db:"product_id"`
+	SKU           string `json:"sku" db:"sku"`
+	Name          string `json:"name" db:"name"`
+	EANBarcode    string `json:"ean_barcode" db:"ean_barcode"`
+	UPCBarcode    string `json:"upc_barcode" db:"upc_barcode"`
+	Description   string `json:"description" db:"description"`
+	Discontinued  bool   `json:"discontinued" db:"discontinued"`
+	BackOrderable bool   `json:"back_orderable" db:"back_orderable"`
+	CommodityCode string `json:"commodity_code" db:"commodity_code"`
+	Categories    string `json:"categories" db:"categories"`
+	Suppliers     string `json:"suppliers" db:"suppliers"`
+	Vat           int    `json:"product_vat" db:"product_vat"`
+
+	CostPrice   string `json:"cost_price" db:"cost_price"`
+	UnitPrice   string `json:"unit_price" db:"unit_price"`
+	BoxPrice    string `json:"box_price" db:"box_price"`
+	PalletPrice string `json:"pallet_price" db:"pallet_price"`
+
+	BoxQuantity    string `json:"box_quantity" db:"box_quantity"`
+	PalletQuantity string `json:"pallet_quantity" db:"pallet_quantity"`
+
+	ImageURL             string `json:"image_url" db:"image_url"`
+	HasExpiryDate        bool   `json:"has_expiry_date" db:"has_expiry_date"`
+	CountryOfManufacture string `json:"country_of_manufacture" db:"country_of_manufacture"`
+}
+
+type TglOrder struct {
+	ID                 int64  `json:"id" db:"id"`
+	OrderID            string `json:"order_id" db:"order_id"`
+	ProductID          string `json:"product_id" db:"product_id"`
+	Quantity           int    `json:"quantity" db:"quantity"`
+	Unit               string `json:"unit" db:"unit"`
+	CustomerID         string `json:"customer_id" db:"customer_id"`
+	SoldPrice          int    `json:"sold_price" db:"sold_price"`
+	PercentageDiscount string `json:"percentage_discount" db:"percentage_discount"`
+	Price              int    `json:"price" db:"price"`
+	Free               bool   `json:"free" db:"free"`
+	PlacedAt           string `json:"created_at" db:"created_at"`
+	ProductName        string `json:"product_name" db:"product_name"`
+	ProductImage       string `json:"product_image" db:"product_image"`
+	Vat                int    `json:"product_vat" db:"product_vat"`
+}
+
+type TglCustomer struct {
+	ID            int64  `json:"id" db:"id"`
+	CustomerID    string `json:"customer_id" db:"customer_id"`
+	ContactPerson string `json:"contact_person" db:"contact_person"`
+	CustomerPhone string `json:"customer_phone" db:"customer_phone"`
+	BusinessName  string `json:"business_name" db:"business_name"`
+	PostCode      string `json:"post_code" db:"post_code"`
+	Address       string `json:"address" db:"address"`
+	City          string `json:"city" db:"city"`
+	Town          string `json:"town"`
+	County        string `json:"county"`
+	Email         string `json:"email" db:"email"`
+	Notes         string `json:"notes" db:"notes"`
+	IsActive      bool   `json:"is_active" db:"is_active"`
+	CreatedAt     string `json:"created_at" db:"created_at"`
+	UpdatedAt     string `json:"updated_at" db:"updated_at"`
+}
+
+type TglOrderReturn struct {
+	OrderId      string `json:"order_id"`
+	Status       string `json:"status"`
+	MintSoftId   string `json:"mintsoft_id"  db:"mintsoft_id"`
+	CustomerID   string `json:"customer_id" db:"customer_id"`
+	BusinessName string `json:"business_name" db:"business_name"`
+	CreatedAt    string `json:"created_at" db:"created_at"`
+	Items        []TglOrder
+}
+
+type TglClients struct {
+	ClientId         string `json:"client_id"`
+	ID               string `json:"id"`
+	Name             string `json:"name"`
+	Username         string `json:"username"`
+	Password         string `json:"password"`
+	StorageUnitPrice string `json:"storage_unit_price"`
 }
