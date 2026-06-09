@@ -819,6 +819,6 @@ func (p StudentsAppStore) GetFreeApplicationCount(ctx context.Context, student_i
 	p.DB.QueryRowContext(ctx, `SELECT COUNT(*) as total_requests
 	from university_applications ua 
 	Left join programs pg on ua.program_id = pg.program_id
-	where student_id = $1 AND pg.program_application_fee = $2`, student_id, "0.00").Scan(&freeapplicationCount)
+	where student_id = $1 AND pg.program_application_fee = $2`, student_id, "free").Scan(&freeapplicationCount)
 	return freeapplicationCount, nil
 }
