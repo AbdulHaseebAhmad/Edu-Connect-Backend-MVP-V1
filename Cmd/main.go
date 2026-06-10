@@ -180,6 +180,7 @@ func main() {
 	router.Handle("GET /api/students/app/scholarship/reminder/set", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.ScholarshipReminderCheck(studentStore, smtp)))
 
 	router.Handle("GET /api/students/app/freeapplication/check", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.GetFreeApplicationCount(studentStore)))
+	router.Handle("GET /api/students/app/programs/search", Middlewares.Authorizer(sysAdminStore, StudentAppHandler.SearchPrograms(studentStore)))
 	//---->   Routes End   <-----
 
 	//TGL

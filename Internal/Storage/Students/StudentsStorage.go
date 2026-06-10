@@ -822,3 +822,29 @@ func (p StudentsAppStore) GetFreeApplicationCount(ctx context.Context, student_i
 	where student_id = $1 AND pg.program_application_fee = $2`, student_id, "free").Scan(&freeapplicationCount)
 	return freeapplicationCount, nil
 }
+
+func (p StudentsAppStore) SearchPrograms(ctx context.Context, search_term string) (country_ids []string, err error) {
+
+	var universities []string
+	rows, dberr := p.DB.QueryContext(ctx,
+		`SELECT u.university_country FROM universities u  
+		Left join programs p on p.university_id = u.university_id
+		WHERE program_name ILIKE '%' || $1 || '%'`,
+		search_term)
+
+	if dberr != nil {
+		return nil, dberr
+	}
+
+	for rows.Next() {
+		var university string
+
+		scerr := rows.Scan(&university)
+
+		if scerr != nil {
+			return nil, scerr
+		}
+		universities = append(universities, university)
+	}
+	return universities, nil
+}

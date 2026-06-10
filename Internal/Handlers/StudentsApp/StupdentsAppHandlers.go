@@ -837,3 +837,19 @@ func GetFreeApplicationCount(storage Storage.StudentsApp) http.HandlerFunc {
 		response.WriteJson(w, http.StatusOK, freeApplicationCoiunt)
 	}
 }
+
+func SearchPrograms(storage Storage.StudentsApp) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		search_term := r.URL.Query().Get("search_term")
+
+		country_ids, dberr := storage.SearchPrograms(r.Context(), search_term)
+
+		if dberr != nil {
+			slog.Error("db error", "error", dberr)
+			response.WriteJson(w, http.StatusBadRequest, response.GeneralError(dberr))
+			return
+		}
+
+		response.WriteJson(w, http.StatusOK, country_ids)
+	}
+}
