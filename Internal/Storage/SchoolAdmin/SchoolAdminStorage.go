@@ -149,6 +149,7 @@ func (p *SchoolAdminStore) GetUnProcessedStudentsList(ctx context.Context, schoo
     sp.nationality,
     sp.passport_number,
     sp.passport_expiry,
+    sp.passport_issue,
     sp.marrital_status,
 
     sc.email,
@@ -226,6 +227,7 @@ func (p *SchoolAdminStore) GetUnProcessedStudentsList(ctx context.Context, schoo
 		sp.nationality,
 		sp.passport_number,
 		sp.passport_expiry,
+		sp.passport_issue,
 		sp.marrital_status,
 
 		sc.email,
@@ -277,6 +279,7 @@ func (p *SchoolAdminStore) GetUnProcessedStudentsList(ctx context.Context, schoo
 			&studentDetails.StudentCitizenshipDetails.Nationality,
 			&studentDetails.StudentCitizenshipDetails.Passport_Number,
 			&studentDetails.StudentCitizenshipDetails.Passport_Expiry,
+			&studentDetails.StudentCitizenshipDetails.Place_Of_Issue,
 			&studentDetails.StudentPersonalDetails.Marrital_Status,
 			&studentDetails.StudentContact.Email,
 			&studentDetails.StudentContact.Phone,
