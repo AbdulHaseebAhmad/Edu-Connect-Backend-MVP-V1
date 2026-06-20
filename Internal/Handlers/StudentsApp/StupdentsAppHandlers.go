@@ -841,8 +841,9 @@ func GetFreeApplicationCount(storage Storage.StudentsApp) http.HandlerFunc {
 func SearchPrograms(storage Storage.StudentsApp) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		search_term := r.URL.Query().Get("search_term")
+		country_id := r.URL.Query().Get("country_id")
 
-		country_ids, dberr := storage.SearchPrograms(r.Context(), search_term)
+		country_ids, dberr := storage.SearchPrograms(r.Context(), search_term, country_id)
 
 		if dberr != nil {
 			slog.Error("db error", "error", dberr)

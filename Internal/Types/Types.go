@@ -572,6 +572,22 @@ type Student struct {
 	ApplicationStatus string `json:"application_status"`
 }
 
+type ProgramSearchResponse struct {
+	ProgramID       string  `json:"program_id"`
+	ProgramName     *string `json:"program_name"`
+	ProgramFee      string  `json:"program_fee"`
+	ProgramDuration string  `json:"program_duration"`
+	SessionIntake   string  `json:"session_intake"`
+
+	UniversityName     *string `json:"university_name"`
+	UniversityCountry  *string `json:"university_country"`
+	UniversityImage    *string `json:"university_image"`
+	UniversityCurrency *string `json:"currrency"`
+	UniversityId       *string `json:"university_id"`
+	CountryCode        *string `json:"country_code"`
+	CountryName        *string `json:"country_name"`
+}
+
 type TglProduct struct {
 	ID            int64  `json:"id" db:"id"`
 	ProductID     string `json:"product_id" db:"product_id"`

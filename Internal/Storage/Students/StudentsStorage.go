@@ -823,28 +823,34 @@ func (p StudentsAppStore) GetFreeApplicationCount(ctx context.Context, student_i
 	return freeapplicationCount, nil
 }
 
-func (p StudentsAppStore) SearchPrograms(ctx context.Context, search_term string) (country_ids []string, err error) {
+func (p StudentsAppStore) SearchPrograms(ctx context.Context, search_term string, country_id string) (programs []Types.ProgramSearchResponse, err error) {
 
-	var universities []string
+	var programsList []Types.ProgramSearchResponse
+
 	rows, dberr := p.DB.QueryContext(ctx,
-		`SELECT u.university_country FROM universities u  
-		Left join programs p on p.university_id = u.university_id
-		WHERE program_name ILIKE '%' || $1 || '%'`,
-		search_term)
+		`SELECT Distinct
+	p.program_id, p.program_name,p.program_fee,p.program_duration,p.session_intake,
+	u.university_name,u.university_country,u.university_image,u.currency,u.university_id,
+	c.country_code,c.name
+	FROM programs p  
+		Left join universities u on p.university_id = u.university_id
+		Left join countries c on u.university_country = c.country_code  
+		WHERE p.program_name ILIKE '%' || $1 || '%' AND ($2 = '' OR c.country_code = $2) AND c.country_code != 'UK001'`,
+		search_term, country_id)
 
 	if dberr != nil {
 		return nil, dberr
 	}
 
 	for rows.Next() {
-		var university string
+		var program Types.ProgramSearchResponse
 
-		scerr := rows.Scan(&university)
+		scerr := rows.Scan(&program.ProgramID, &program.ProgramName, &program.ProgramFee, &program.ProgramDuration, &program.SessionIntake, &program.UniversityName, &program.UniversityCountry, &program.UniversityImage, &program.UniversityCurrency, &program.UniversityId, &program.CountryCode, &program.CountryName)
 
 		if scerr != nil {
 			return nil, scerr
 		}
-		universities = append(universities, university)
+		programsList = append(programsList, program)
 	}
-	return universities, nil
+	return programsList, nil
 }

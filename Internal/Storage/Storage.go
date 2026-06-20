@@ -90,7 +90,7 @@ type StudentsApp interface {
 	ScholarshipReminderCheck(ctx context.Context, student_id string, scholarship_id string) (bool, error)
 
 	GetFreeApplicationCount(ctx context.Context, student_id string) (freeappCount int, err error)
-	SearchPrograms(ctx context.Context, search_term string) (country_ids []string, err error)
+	SearchPrograms(ctx context.Context, search_term string, country_id string) (programs []Types.ProgramSearchResponse, err error)
 }
 
 type UniversityPortal interface {
