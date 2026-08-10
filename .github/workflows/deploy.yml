@@ -18,3 +18,9 @@ jobs:
 
       - name: Build Go binary
         run: go build -o geos-backend ./Cmd
+        
+      - name: Deploy to bastion
+        run: |
+          echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
+          chmod 600 key.pem
+          scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
