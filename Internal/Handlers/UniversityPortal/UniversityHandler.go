@@ -36,7 +36,7 @@ func AddUniversity(storage Storage.UniversityPortal) http.HandlerFunc {
 }
 func Login(storage Storage.UniversityPortal) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Info("Request to Login University recieved")
+		slog.Info("Request to Login University recieved trying to log you in...")
 		if r.Header.Get("Content-Type") != "application/json" {
 			response.WriteJson(w, http.StatusUnsupportedMediaType, map[string]string{
 				"error": "Content-Type must be application/json",
