@@ -24,3 +24,8 @@ jobs:
           echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
           chmod 600 key.pem
           scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
+      - name: Deploy to private instance
+        run: |
+          scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
+            "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.52:/var/www/geos-backend/geos-backend"
