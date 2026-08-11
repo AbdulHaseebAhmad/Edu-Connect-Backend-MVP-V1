@@ -13,6 +13,7 @@ import (
 )
 
 func AddUniversity(storage Storage.UniversityPortal) http.HandlerFunc {
+	slog.Info("Adding university")
 	return func(w http.ResponseWriter, r *http.Request) {
 		var University Types.University
 
