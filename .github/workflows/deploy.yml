@@ -19,13 +19,12 @@ jobs:
       - name: Build Go binary
         run: go build -o geos-backend ./Cmd
         
-      - name: Deploy to bastion
+      - name: Copy to bastion
         run: |
           echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
           chmod 600 key.pem
           scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
-      - name: Deploy to private instance
+      - name: SSH to Bastion and COPY app-server
         run: |
-          scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
-            "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.52:/var/www/geos-backend/geos-backend"
+            "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.52:/var/www/"
