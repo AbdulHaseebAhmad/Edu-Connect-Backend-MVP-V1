@@ -24,7 +24,13 @@ jobs:
           echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
           chmod 600 key.pem
           scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@54.91.5.61:/home/ubuntu/
+      - name: SSH to app_server through bastion and create directories on app_server
+        run: | 
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
+           "ssh -o StrictHostKeyChecking=no -i  ~/.ssh/production_app_server.pem ubuntu@10.4.2.52 \
+             'sudo mkdir -p /var/www/geos-backend  && \ 
+             sudo chown ubuntu:ubuntu /var/www/geos-backend'" 
       - name: SSH to Bastion and COPY app-server
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
-            "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.52:/var/www/"
+            "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.52:/var/www/geos-backend"
