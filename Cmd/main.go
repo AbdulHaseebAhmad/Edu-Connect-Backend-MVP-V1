@@ -6,6 +6,7 @@ import (
 	"log"
 	"log/slog"
 	"net/http"
+	"net/url"
 	"os"
 	"os/signal"
 	"syscall"
@@ -47,7 +48,7 @@ func main() {
 
 		cfg.StoragePath = fmt.Sprintf(
 			"postgres://%s:%s@%s:5432/edu-connect?sslmode=require",
-			dbCreds.Username, dbCreds.Password, cfg.RdsEndpoint,
+			dbCreds.Username, url.QueryEscape(dbCreds.Password), cfg.RdsEndpoint,
 		)
 	}
 
