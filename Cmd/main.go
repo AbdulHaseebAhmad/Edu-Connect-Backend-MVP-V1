@@ -80,7 +80,7 @@ func main() {
 	router := http.NewServeMux()
 
 	//---->  Routes Starrt <-----
-	router.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	router.HandleFunc("GET /api", func(w http.ResponseWriter, r *http.Request) {
 		w.Write([]byte("Welcome To the App"))
 	})
 
