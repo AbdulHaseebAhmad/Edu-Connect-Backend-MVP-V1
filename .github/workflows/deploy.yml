@@ -41,8 +41,10 @@ jobs:
       - name: SSH to Bastion and COPY app-server
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
-          "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.4.200:/var/www/geos-backend && \
-           ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.4.200 'sudo systemctl restart geos-backend'"
+            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.4.200 'sudo systemctl stop geos-backend' && \
+             scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.4.200:/var/www/geos-backend && \
+             ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.4.200 'sudo systemctl restart geos-backend'"
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@54.91.5.61 \
-          "scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.12:/var/www/geos-backend && \
-           ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.2.12 'sudo systemctl restart geos-backend'"
+            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.2.12 'sudo systemctl stop geos-backend' && \
+             scp -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem /home/ubuntu/geos-backend ubuntu@10.4.2.12:/var/www/geos-backend && \
+             ssh -o StrictHostKeyChecking=no -i ~/.ssh/production_app_server.pem ubuntu@10.4.2.12 'sudo systemctl restart geos-backend'"
