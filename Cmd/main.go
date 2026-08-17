@@ -19,6 +19,7 @@ import (
 	Tgl "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/TGL"
 	UniversityHandler "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Handlers/UniversityPortal"
 	Middlewares "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Middleware"
+	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Secrets"
 	"github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Postgress"
 	SchoolAdminStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/SchoolAdmin"
 	StudentsAppStorage "github.com/AbdulHaseebAhmad/Edu-Connect-Backend-MVP-V1/Internal/Storage/Students"
@@ -32,6 +33,24 @@ func main() {
 
 	// setup cnfigurations
 	cfg := Configurator.LoadConfiguration()
+
+	if cfg.Env == "production" {
+		secretsFetcher, err := Secrets.NewSecretsFetcher()
+		if err != nil {
+			log.Fatal("failed to initialize secrets fetcher:", err)
+		}
+
+		dbCreds, err := secretsFetcher.FetchDBCredentials(cfg.SecretARN)
+		if err != nil {
+			log.Fatal("failed to fetch DB credentials:", err)
+		}
+
+		cfg.StoragePath = fmt.Sprintf(
+			"postgres://%s:%s@%s:5432/edu-connect?sslmode=require",
+			dbCreds.Username, dbCreds.Password, cfg.RdsEndpoint,
+		)
+	}
+
 	fmt.Println(*cfg)
 
 	smtp := Smtp.NewSMTPSender(cfg)
