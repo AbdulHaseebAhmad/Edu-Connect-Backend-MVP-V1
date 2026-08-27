@@ -38,9 +38,9 @@ jobs:
           echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
           chmod 600 key.pem
           scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@52.72.143.27:/home/ubuntu/
-          echo "${{ secrets.GEOS_APP_SERVER_KEY_PAIR }}" > geos-app-server.pem
+          echo "${{ secrets.GEOS_APP_SERVER_KEY_PAIR }}" > geos_app_server.pem
           chmod 600 geos-app-server.pem
-          scp -o StrictHostKeyChecking=no -i key.pem geos-app-server.pem ubuntu@52.72.143.27:/home/ubuntu/.ssh/geos-app-server.pem
+          scp -o StrictHostKeyChecking=no -i key.pem geos_app_server.pem ubuntu@52.72.143.27:/home/ubuntu/.ssh/geos-app-server.pem
       - name: SSH to Bastion and COPY app-server
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@52.72.143.27 \
