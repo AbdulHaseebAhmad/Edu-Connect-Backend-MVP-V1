@@ -45,7 +45,7 @@ jobs:
         run: |
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@52.72.143.27 \
             "ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'sudo systemctl stop geos-backend' && \
-             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.5.4.97 :/var/www/geos-backend && \
+             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.5.4.97:/var/www/geos-backend && \
              ssh -o StrictHostKeyChecking=no -i  ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'chmod +x /var/www/geos-backend/geos-backend'
              ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'sudo systemctl restart geos-backend'"
           ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@52.72.143.27  \
