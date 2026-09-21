@@ -19,7 +19,7 @@ type SecretsFetcher struct {
 }
 
 func NewSecretsFetcher() (*SecretsFetcher, error) {
-	awsCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("us-east-1"))
+	awsCfg, err := config.LoadDefaultConfig(context.TODO(), config.WithRegion("eu-west-2"))
 	if err != nil {
 		return nil, fmt.Errorf("failed to load AWS config: %w", err)
 	}
