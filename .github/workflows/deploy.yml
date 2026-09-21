@@ -37,19 +37,19 @@ jobs:
         run: |
           echo "${{ secrets.GEOS_BASTION_KEY_PAIR }}" > key.pem
           chmod 600 key.pem
-          scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@52.72.143.27:/home/ubuntu/
+          scp -o StrictHostKeyChecking=no -i key.pem geos-backend ubuntu@18.170.213.188:/home/ubuntu/
           echo "${{ secrets.GEOS_APP_SERVER_KEY_PAIR }}" > geos_app_server.pem
           chmod 600 geos_app_server.pem
-          scp -o StrictHostKeyChecking=no -i key.pem geos_app_server.pem ubuntu@52.72.143.27:/home/ubuntu/.ssh/
+          scp -o StrictHostKeyChecking=no -i key.pem geos_app_server.pem ubuntu@18.170.213.188:/home/ubuntu/.ssh/
       - name: SSH to Bastion and COPY app-server
         run: |
-          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@52.72.143.27 \
-            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'sudo systemctl stop geos-backend' && \
-             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.5.4.97:/var/www/geos-backend && \
-             ssh -o StrictHostKeyChecking=no -i  ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'chmod +x /var/www/geos-backend/geos-backend'
-             ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.4.97 'sudo systemctl restart geos-backend'"
-          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@52.72.143.27  \
-            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.2.195 'sudo systemctl stop geos-backend' && \
-             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.5.2.195:/var/www/geos-backend && \
-              ssh -o StrictHostKeyChecking=no -i  ~/.ssh/geos_app_server.pem ubuntu@10.5.2.195 'chmod +x /var/www/geos-backend/geos-backend'
-             ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.5.2.195 'sudo systemctl restart geos-backend'"
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@18.170.213.188 \
+            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.0.12.30 'sudo systemctl stop geos-backend' && \
+             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.0.12.30:/var/www/geos-backend && \
+             ssh -o StrictHostKeyChecking=no -i  ~/.ssh/geos_app_server.pem ubuntu@10.0.12.30 'chmod +x /var/www/geos-backend/geos-backend'
+             ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.0.12.30 'sudo systemctl restart geos-backend'"
+          ssh -o StrictHostKeyChecking=no -i key.pem ubuntu@18.170.213.188  \
+            "ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.0.11.111 'sudo systemctl stop geos-backend' && \
+             scp -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem /home/ubuntu/geos-backend ubuntu@10.0.11.111:/var/www/geos-backend && \
+              ssh -o StrictHostKeyChecking=no -i  ~/.ssh/geos_app_server.pem ubuntu@10.0.11.111 'chmod +x /var/www/geos-backend/geos-backend'
+             ssh -o StrictHostKeyChecking=no -i ~/.ssh/geos_app_server.pem ubuntu@10.0.11.111 'sudo systemctl restart geos-backend'"
